@@ -81,7 +81,7 @@ export default async function AliadoPropiedadesPage() {
         Mis propiedades
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Crea y gestiona tus propiedades. La publicaciÃ³n requiere aprobaciÃ³n del operador.
+        Crea y gestiona tus propiedades. La publicación requiere aprobación del operador.
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
@@ -92,11 +92,11 @@ export default async function AliadoPropiedadesPage() {
           <CardContent>
             <form action={crearPropiedadAliado} className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="titulo">TÃ­tulo</Label>
+                <Label htmlFor="titulo">Título</Label>
                 <Input id="titulo" name="titulo" required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea id="descripcion" name="descripcion" rows={5} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -111,7 +111,7 @@ export default async function AliadoPropiedadesPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="huespedesMax">HuÃ©spedes mÃ¡x.</Label>
+                  <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
                   <Input id="huespedesMax" name="huespedesMax" type="number" min={1} defaultValue={4} />
                 </div>
                 <div className="grid gap-2">
@@ -120,7 +120,7 @@ export default async function AliadoPropiedadesPage() {
                 </div>
               </div>
               <Button className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" type="submit">
-                Enviar a revisiÃ³n
+                Enviar a revisión
               </Button>
             </form>
           </CardContent>
@@ -138,7 +138,7 @@ export default async function AliadoPropiedadesPage() {
                 <div key={p.id} className="rounded-2xl border bg-white p-4">
                   <div className="font-medium text-foreground">{p.titulo}</div>
                   <div className="mt-1 text-sm text-muted-foreground">
-                    {p.ciudad}, {p.estadoRegion} Â· Estado:{" "}
+                    {p.ciudad}, {p.estadoRegion} · Estado:{" "}
                     <span className="font-medium text-foreground">
                       {labelPropertyStatus(p.status)}
                     </span>

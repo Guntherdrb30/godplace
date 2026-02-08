@@ -44,20 +44,20 @@ export default function AliadoPage() {
       <div className="mx-auto max-w-2xl">
         <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Ser aliado</h1>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
-          Registra tus propiedades en Godplaces. Para publicar, necesitas verificaciÃ³n
-          manual (KYC) y aprobaciÃ³n del operador central.
+          Registra tus propiedades en Godplaces. Para publicar, necesitas verificación
+          manual (KYC) y aprobación del operador central.
         </p>
 
         <Card className="mt-8 rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
-            <CardTitle>VerificaciÃ³n (KYC)</CardTitle>
+            <CardTitle>Verificación (KYC)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Documentos mÃ­nimos:</p>
+            <p>Documentos mínimos:</p>
             <ul className="list-disc pl-5">
-              <li>CÃ©dula</li>
+              <li>Cédula</li>
               <li>RIF</li>
-              <li>Selfie con cÃ©dula</li>
+              <li>Selfie con cédula</li>
               <li>Documento de propiedad o poder</li>
             </ul>
             <form action={iniciarProceso}>
@@ -71,4 +71,3 @@ export default function AliadoPage() {
     </Container>
   );
 }
-

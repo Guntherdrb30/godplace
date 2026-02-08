@@ -48,7 +48,7 @@ export default async function SearchPage(props: {
             Explorar propiedades
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Resultados del catÃ¡logo aprobado por el operador central.
+            Resultados del catálogo aprobado por el operador central.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default async function SearchPage(props: {
             <Input id="ciudad" name="ciudad" defaultValue={ciudad} placeholder="Ej: Caracas, Valencia..." />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="huespedes">HuÃ©spedes</Label>
+            <Label htmlFor="huespedes">Huéspedes</Label>
             <Input
               id="huespedes"
               name="huespedes"

@@ -14,7 +14,7 @@ export default function NoAutorizadoPage() {
       <div className="rounded-3xl border bg-white/80 p-10 shadow-suave">
         <h1 className="font-[var(--font-display)] text-3xl tracking-tight">No autorizado</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          No tienes permisos para acceder a esta secciÃ³n.
+          No tienes permisos para acceder a esta sección.
         </p>
         <div className="mt-6 flex gap-3">
           <Button asChild className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">

@@ -38,7 +38,7 @@ async function actualizar(formData: FormData) {
   if (!prop || prop.allyProfileId !== user.allyProfileId) throw new Error("No autorizado.");
 
   if (!titulo || !descripcion || !ciudad || !estadoRegion) throw new Error("Faltan campos.");
-  if (price <= 0) throw new Error("Precio invÃ¡lido.");
+  if (price <= 0) throw new Error("Precio inválido.");
 
   await prisma.property.update({
     where: { id },
@@ -49,7 +49,7 @@ async function actualizar(formData: FormData) {
       estadoRegion,
       pricePerNightCents: price,
       huespedesMax: maxGuests,
-      // Mantiene estado. Si fue REJECTED/DRAFT, el aliado puede volver a enviar a revisiÃ³n manualmente (TODO).
+      // Mantiene estado. Si fue REJECTED/DRAFT, el aliado puede volver a enviar a revisión manualmente (TODO).
     },
   });
 
@@ -79,7 +79,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
     <Container className="py-12">
       <div className="mb-6">
         <Link href="/aliado/propiedades" className="text-sm text-muted-foreground hover:text-foreground">
-          â† Volver a mis propiedades
+          ← Volver a mis propiedades
         </Link>
       </div>
 
@@ -92,11 +92,11 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
             <form action={actualizar} className="grid gap-4">
               <input type="hidden" name="id" value={p.id} />
               <div className="grid gap-2">
-                <Label htmlFor="titulo">TÃ­tulo</Label>
+                <Label htmlFor="titulo">Título</Label>
                 <Input id="titulo" name="titulo" defaultValue={p.titulo} required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea id="descripcion" name="descripcion" defaultValue={p.descripcion} rows={6} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -111,7 +111,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="huespedesMax">HuÃ©spedes mÃ¡x.</Label>
+                  <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
                   <Input id="huespedesMax" name="huespedesMax" type="number" min={1} defaultValue={p.huespedesMax} />
                 </div>
                 <div className="grid gap-2">
@@ -128,14 +128,14 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
               <span className="font-medium text-foreground">
                 {labelPropertyStatus(p.status)}
               </span>{" "}
-              (publicaciÃ³n requiere aprobaciÃ³n).
+              (publicación requiere aprobación).
             </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
-            <CardTitle>ImÃ¡genes</CardTitle>
+            <CardTitle>Imágenes</CardTitle>
           </CardHeader>
           <CardContent>
             <PropertyImageUploader
