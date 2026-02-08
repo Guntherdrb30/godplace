@@ -10,6 +10,7 @@ const schema = z.object({
   nombre: z.string().trim().max(120).optional(),
   email: z.string().email(),
   password: z.string().min(8),
+  tipoCuenta: z.enum(["CLIENTE", "ALIADO"]).default("CLIENTE"),
 });
 
 function redirectConError(req: Request, msg: string) {
@@ -24,28 +25,62 @@ export async function POST(req: Request) {
     nombre: String(form.get("nombre") || "").trim() || undefined,
     email: String(form.get("email") || "").toLowerCase().trim(),
     password: String(form.get("password") || ""),
+    tipoCuenta: String(form.get("tipoCuenta") || "")
+      .toUpperCase()
+      .trim() || undefined,
   });
   if (!parsed.success) return redirectConError(req, "Datos inválidos.");
-
-  // En producción, `prisma db seed` puede no ejecutarse. Para que el registro funcione
-  // siempre, garantizamos el rol base CLIENTE de forma idempotente.
-  const roleCliente = await prisma.role.upsert({
-    where: { code: "CLIENTE" },
-    update: { nombre: "CLIENTE" },
-    create: { code: "CLIENTE", nombre: "CLIENTE" },
-  });
 
   const passwordHash = await hashPassword(parsed.data.password);
 
   try {
-    const user = await prisma.user.create({
-      data: {
-        email: parsed.data.email,
-        nombre: parsed.data.nombre,
-        passwordHash,
-        roles: { create: [{ roleId: roleCliente.id }] },
-      },
-      include: { roles: { include: { role: true } } },
+    const user = await prisma.$transaction(async (tx) => {
+      // En producción, `prisma db seed` puede no ejecutarse. Para que el registro funcione
+      // siempre, garantizamos roles base de forma idempotente.
+      const roleCliente = await tx.role.upsert({
+        where: { code: "CLIENTE" },
+        update: { nombre: "CLIENTE" },
+        create: { code: "CLIENTE", nombre: "CLIENTE" },
+      });
+
+      const rolesCreate: { roleId: string }[] = [{ roleId: roleCliente.id }];
+
+      let allyProfile:
+        | {
+            create: {
+              status: "PENDING_KYC";
+              isInternal: false;
+              wallet: { create: Record<string, never> };
+            };
+          }
+        | undefined;
+
+      if (parsed.data.tipoCuenta === "ALIADO") {
+        const roleAliado = await tx.role.upsert({
+          where: { code: "ALIADO" },
+          update: { nombre: "ALIADO" },
+          create: { code: "ALIADO", nombre: "ALIADO" },
+        });
+        rolesCreate.push({ roleId: roleAliado.id });
+        allyProfile = {
+          create: {
+            status: "PENDING_KYC",
+            isInternal: false,
+            wallet: { create: {} },
+          },
+        };
+      }
+
+      return tx.user.create({
+        data: {
+          email: parsed.data.email,
+          nombre: parsed.data.nombre,
+          passwordHash,
+          roles: { create: rolesCreate },
+          allyProfile,
+        },
+        include: { roles: { include: { role: true } }, allyProfile: true },
+      });
     });
 
     const roles = user.roles.map((ur) => ur.role.code);
@@ -54,7 +89,8 @@ export async function POST(req: Request) {
     const rbac = await firmarRbacToken({ userId: user.id, roles });
     await setCookieRbac(rbac, expiresAt);
 
-    return NextResponse.redirect(new URL("/", req.url), { status: 303 });
+    const nextUrl = parsed.data.tipoCuenta === "ALIADO" ? "/aliado/kyc" : "/";
+    return NextResponse.redirect(new URL(nextUrl, req.url), { status: 303 });
   } catch (e: unknown) {
     const code =
       typeof e === "object" && e && typeof (e as { code?: unknown }).code === "string"

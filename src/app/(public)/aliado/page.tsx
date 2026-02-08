@@ -13,8 +13,12 @@ async function iniciarProceso() {
   "use server";
   const user = await requireUser();
 
-  const roleAliado = await prisma.role.findUnique({ where: { code: "ALIADO" } });
-  if (!roleAliado) throw new Error("Falta rol ALIADO (seed).");
+  // En producción, `prisma db seed` puede no ejecutarse. Garantizamos el rol ALIADO de forma idempotente.
+  const roleAliado = await prisma.role.upsert({
+    where: { code: "ALIADO" },
+    update: { nombre: "ALIADO" },
+    create: { code: "ALIADO", nombre: "ALIADO" },
+  });
 
   await prisma.userRole.upsert({
     where: { userId_roleId: { userId: user.id, roleId: roleAliado.id } },
