@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { Button } from "@/components/ui/button";
@@ -74,12 +74,12 @@ export function BookingWidget(props: {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast("No se pudo crear la reserva.", {
-          description: data?.message || "Intenta nuevamente o inicia sesión.",
+          description: data?.message || "Intenta nuevamente o inicia sesiÃ³n.",
         });
         return;
       }
       toast("Reserva creada como borrador.", {
-        description: "MVP: pagos reales pendientes. Puedes verla en el panel de administración si aplica.",
+        description: "MVP: pagos reales pendientes. Puedes verla en el panel de administraciÃ³n si aplica.",
       });
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export function BookingWidget(props: {
           <Input id="checkout" type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="guests">Huéspedes</Label>
+          <Label htmlFor="guests">HuÃ©spedes</Label>
           <Input
             id="guests"
             type="number"
@@ -113,7 +113,7 @@ export function BookingWidget(props: {
             value={guests}
             onChange={(e) => setGuests(Math.max(1, Number.parseInt(e.target.value || "1", 10) || 1))}
           />
-          <div className="text-xs text-muted-foreground">Máximo: {props.maxGuests}</div>
+          <div className="text-xs text-muted-foreground">MÃ¡ximo: {props.maxGuests}</div>
         </div>
 
         <div className="rounded-2xl border bg-secondary/40 p-4 text-sm">
@@ -142,7 +142,7 @@ export function BookingWidget(props: {
 
         <Button
           type="button"
-          className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]"
+          className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90"
           onClick={reservar}
           disabled={loading}
         >

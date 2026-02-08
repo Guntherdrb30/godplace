@@ -26,11 +26,11 @@ export async function SiteHeader() {
               height={34}
               priority
             />
-            <span className="font-[var(--font-display)] text-lg tracking-tight text-marca-petroleo">
-              Godplaces<span className="text-marca-turquesa">.</span>
+            <span className="font-[var(--font-display)] text-lg tracking-tight text-brand-secondary">
+              Godplaces<span className="text-brand-primary">.</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-6 text-sm sm:flex">
+          <nav aria-label="Navegación principal" className="hidden items-center gap-6 text-sm sm:flex">
             <Link className="text-muted-foreground hover:text-foreground" href="/search">
               Explorar
             </Link>
@@ -52,7 +52,7 @@ export async function SiteHeader() {
               <Button asChild variant="ghost">
                 <Link href="/login">Acceder</Link>
               </Button>
-              <Button asChild className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]">
+              <Button asChild className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
                 <Link href="/registro">Crear cuenta</Link>
               </Button>
             </>

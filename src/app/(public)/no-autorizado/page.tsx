@@ -1,4 +1,4 @@
-import { Container } from "@/components/site/container";
+﻿import { Container } from "@/components/site/container";
 import { buildMetadata } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -14,10 +14,10 @@ export default function NoAutorizadoPage() {
       <div className="rounded-3xl border bg-white/80 p-10 shadow-suave">
         <h1 className="font-[var(--font-display)] text-3xl tracking-tight">No autorizado</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          No tienes permisos para acceder a esta sección.
+          No tienes permisos para acceder a esta secciÃ³n.
         </p>
         <div className="mt-6 flex gap-3">
-          <Button asChild className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]">
+          <Button asChild className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
             <Link href="/">Ir al inicio</Link>
           </Button>
           <Button asChild variant="outline">

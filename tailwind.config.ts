@@ -11,6 +11,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          primary: "#32B5AD",
+          secondary: "#004B57",
+          accent: "#FACC15",
+        },
         marca: {
           turquesa: "#32B5AD",
           petroleo: "#004B57",

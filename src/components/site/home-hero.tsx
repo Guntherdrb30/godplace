@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { useGod } from "@/components/ai/god-provider";
@@ -23,23 +23,23 @@ export function HomeHero() {
           transition={{ duration: 0.45, ease: "easeOut" }}
         >
           <p className="inline-flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1 text-sm text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-marca-turquesa" aria-hidden="true" />
-            Plataforma centralizada con verificación de aliados
+            <span className="h-2 w-2 rounded-full bg-brand-primary" aria-hidden="true" />
+            Plataforma centralizada con verificaciÃ³n de aliados
           </p>
 
-          <h1 className="font-[var(--font-display)] text-4xl leading-[1.05] tracking-tight text-marca-petroleo sm:text-6xl">
-            Hospédate mejor en Venezuela con{" "}
-            <span className="text-marca-turquesa">Godplaces.</span>
+          <h1 className="font-[var(--font-display)] text-4xl leading-[1.05] tracking-tight text-brand-secondary sm:text-6xl">
+            HospÃ©date mejor en Venezuela con{" "}
+            <span className="text-brand-primary">Godplaces.</span>
           </h1>
 
           <p className="max-w-xl text-lg leading-8 text-muted-foreground">
-            Dinos en lenguaje natural cómo quieres hospedarte y God te guía sin inventar
-            precios ni propiedades: siempre consulta el catálogo real.
+            Dinos en lenguaje natural cÃ³mo quieres hospedarte y God te guÃ­a sin inventar
+            precios ni propiedades: siempre consulta el catÃ¡logo real.
           </p>
 
           <div className="rounded-2xl border bg-white/80 p-4 shadow-suave">
             <label htmlFor="busqueda-ia" className="text-sm font-medium">
-              Búsqueda con IA
+              BÃºsqueda con IA
             </label>
             <Textarea
               id="busqueda-ia"
@@ -47,12 +47,12 @@ export function HomeHero() {
               onChange={(e) => setTexto(e.target.value)}
               className="mt-2"
               rows={4}
-              placeholder="Cuéntanos cómo quieres hospedarte… Ej: ‘Apartamento para 4 personas, 2 noches en la playa, con vista al mar en Tucacas’"
+              placeholder="CuÃ©ntanos cÃ³mo quieres hospedarteâ€¦ Ej: â€˜Apartamento para 4 personas, 2 noches en la playa, con vista al mar en Tucacasâ€™"
             />
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
-                className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]"
+                className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90"
                 onClick={() => god.abrirConMensaje(texto)}
               >
                 <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -78,11 +78,11 @@ export function HomeHero() {
                       value={textoModal}
                       onChange={(e) => setTextoModal(e.target.value)}
                       rows={5}
-                      placeholder="Ej: ‘Casa con piscina, 6 personas, 3 noches en Mérida, cerca del centro’"
+                      placeholder="Ej: â€˜Casa con piscina, 6 personas, 3 noches en MÃ©rida, cerca del centroâ€™"
                     />
                     <Button
                       type="button"
-                      className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]"
+                      className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90"
                       onClick={() => god.abrirConMensaje(textoModal)}
                     >
                       Iniciar con God
@@ -106,14 +106,14 @@ export function HomeHero() {
               Confianza operada por una empresa central
             </h2>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li>Verificación manual de aliados (KYC) por Admin/Root.</li>
-              <li>Catálogo controlado: publicación con aprobación.</li>
-              <li>Soporte operativo y auditoría de acciones.</li>
+              <li>VerificaciÃ³n manual de aliados (KYC) por Admin/Root.</li>
+              <li>CatÃ¡logo controlado: publicaciÃ³n con aprobaciÃ³n.</li>
+              <li>Soporte operativo y auditorÃ­a de acciones.</li>
             </ul>
             <div className="rounded-xl border bg-white p-4 text-sm">
               <p className="font-medium text-foreground">Nota MVP</p>
               <p className="mt-1 text-muted-foreground">
-                Los pagos reales no están activos todavía. Se registra la reserva y el
+                Los pagos reales no estÃ¡n activos todavÃ­a. Se registra la reserva y el
                 split (fee plataforma / ganancias aliado) como snapshot.
               </p>
             </div>

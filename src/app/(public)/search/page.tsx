@@ -1,4 +1,4 @@
-import { Container } from "@/components/site/container";
+﻿import { Container } from "@/components/site/container";
 import { PropertyCard } from "@/components/site/property-card";
 import { buildMetadata } from "@/lib/seo";
 import { prisma } from "@/lib/prisma";
@@ -48,7 +48,7 @@ export default async function SearchPage(props: {
             Explorar propiedades
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Resultados del catálogo aprobado por el operador central.
+            Resultados del catÃ¡logo aprobado por el operador central.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default async function SearchPage(props: {
             <Input id="ciudad" name="ciudad" defaultValue={ciudad} placeholder="Ej: Caracas, Valencia..." />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="huespedes">Huéspedes</Label>
+            <Label htmlFor="huespedes">HuÃ©spedes</Label>
             <Input
               id="huespedes"
               name="huespedes"
@@ -68,7 +68,7 @@ export default async function SearchPage(props: {
             />
           </div>
           <div className="flex items-end">
-            <Button type="submit" className="w-full bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]">
+            <Button type="submit" className="w-full bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
               Filtrar
             </Button>
           </div>

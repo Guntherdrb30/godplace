@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { buildMetadata } from "@/lib/seo";
@@ -38,7 +38,7 @@ async function actualizar(formData: FormData) {
   if (!prop || prop.allyProfileId !== user.allyProfileId) throw new Error("No autorizado.");
 
   if (!titulo || !descripcion || !ciudad || !estadoRegion) throw new Error("Faltan campos.");
-  if (price <= 0) throw new Error("Precio inválido.");
+  if (price <= 0) throw new Error("Precio invÃ¡lido.");
 
   await prisma.property.update({
     where: { id },
@@ -49,7 +49,7 @@ async function actualizar(formData: FormData) {
       estadoRegion,
       pricePerNightCents: price,
       huespedesMax: maxGuests,
-      // Mantiene estado. Si fue REJECTED/DRAFT, el aliado puede volver a enviar a revisión manualmente (TODO).
+      // Mantiene estado. Si fue REJECTED/DRAFT, el aliado puede volver a enviar a revisiÃ³n manualmente (TODO).
     },
   });
 
@@ -79,7 +79,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
     <Container className="py-12">
       <div className="mb-6">
         <Link href="/aliado/propiedades" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Volver a mis propiedades
+          â† Volver a mis propiedades
         </Link>
       </div>
 
@@ -92,11 +92,11 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
             <form action={actualizar} className="grid gap-4">
               <input type="hidden" name="id" value={p.id} />
               <div className="grid gap-2">
-                <Label htmlFor="titulo">Título</Label>
+                <Label htmlFor="titulo">TÃ­tulo</Label>
                 <Input id="titulo" name="titulo" defaultValue={p.titulo} required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descripcion">Descripción</Label>
+                <Label htmlFor="descripcion">DescripciÃ³n</Label>
                 <Textarea id="descripcion" name="descripcion" defaultValue={p.descripcion} rows={6} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -111,7 +111,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
+                  <Label htmlFor="huespedesMax">HuÃ©spedes mÃ¡x.</Label>
                   <Input id="huespedesMax" name="huespedesMax" type="number" min={1} defaultValue={p.huespedesMax} />
                 </div>
                 <div className="grid gap-2">
@@ -119,7 +119,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
                   <Input id="pricePerNightCents" name="pricePerNightCents" type="number" min={1} defaultValue={p.pricePerNightCents} />
                 </div>
               </div>
-              <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+              <Button className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" type="submit">
                 Guardar
               </Button>
             </form>
@@ -128,14 +128,14 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
               <span className="font-medium text-foreground">
                 {labelPropertyStatus(p.status)}
               </span>{" "}
-              (publicación requiere aprobación).
+              (publicaciÃ³n requiere aprobaciÃ³n).
             </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
-            <CardTitle>Imágenes</CardTitle>
+            <CardTitle>ImÃ¡genes</CardTitle>
           </CardHeader>
           <CardContent>
             <PropertyImageUploader

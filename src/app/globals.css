@@ -9,6 +9,11 @@
     --marca-petroleo: 188 100% 17%; /* #004B57 */
     --marca-cta: 48 96% 53%; /* #FACC15 */
 
+    /* Alias (tokens solicitados): brand.primary/secondary/accent */
+    --brand-primary: var(--marca-turquesa);
+    --brand-secondary: var(--marca-petroleo);
+    --brand-accent: var(--marca-cta);
+
     /* shadcn/ui tokens (solo tema claro en MVP) */
     --background: 0 0% 100%;
     --foreground: 191 62% 10%;
@@ -61,4 +66,3 @@
   box-shadow: 0 0 0 4px rgba(50, 181, 173, 0.28);
   border-radius: 10px;
 }
-

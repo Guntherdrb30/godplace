@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { COOKIE_SESSION } from "./constants";
 import { hashTokenSesion } from "./crypto";
+import { dbDisponible } from "@/lib/db";
 
 export type CurrentUser = {
   id: string;
@@ -13,6 +14,7 @@ export type CurrentUser = {
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
+  if (!dbDisponible()) return null;
   const jar = await cookies();
   const token = jar.get(COOKIE_SESSION)?.value;
   if (!token) return null;
@@ -48,4 +50,3 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     allyIsInternal: session.user.allyProfile?.isInternal ?? false,
   };
 }
-

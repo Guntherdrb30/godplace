@@ -1,4 +1,4 @@
-import { Container } from "@/components/site/container";
+﻿import { Container } from "@/components/site/container";
 import { buildMetadata } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,24 +44,24 @@ export default function AliadoPage() {
       <div className="mx-auto max-w-2xl">
         <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Ser aliado</h1>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
-          Registra tus propiedades en Godplaces. Para publicar, necesitas verificación
-          manual (KYC) y aprobación del operador central.
+          Registra tus propiedades en Godplaces. Para publicar, necesitas verificaciÃ³n
+          manual (KYC) y aprobaciÃ³n del operador central.
         </p>
 
         <Card className="mt-8 rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
-            <CardTitle>Verificación (KYC)</CardTitle>
+            <CardTitle>VerificaciÃ³n (KYC)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Documentos mínimos:</p>
+            <p>Documentos mÃ­nimos:</p>
             <ul className="list-disc pl-5">
-              <li>Cédula</li>
+              <li>CÃ©dula</li>
               <li>RIF</li>
-              <li>Selfie con cédula</li>
+              <li>Selfie con cÃ©dula</li>
               <li>Documento de propiedad o poder</li>
             </ul>
             <form action={iniciarProceso}>
-              <Button className="mt-4 bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+              <Button className="mt-4 bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" type="submit">
                 Iniciar proceso
               </Button>
             </form>
