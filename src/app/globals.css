@@ -1,26 +1,64 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Godplaces. (marca) */
+    --marca-turquesa: 176 57% 45%; /* #32B5AD */
+    --marca-petroleo: 188 100% 17%; /* #004B57 */
+    --marca-cta: 48 96% 53%; /* #FACC15 */
+
+    /* shadcn/ui tokens (solo tema claro en MVP) */
+    --background: 0 0% 100%;
+    --foreground: 191 62% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 191 62% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 191 62% 10%;
+
+    --primary: var(--marca-petroleo);
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 195 20% 96%;
+    --secondary-foreground: 191 62% 10%;
+
+    --muted: 195 20% 96%;
+    --muted-foreground: 191 12% 35%;
+
+    --accent: 195 20% 96%;
+    --accent-foreground: 191 62% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 195 18% 90%;
+    --input: 195 18% 90%;
+    --ring: var(--marca-turquesa);
+
+    --radius: 0.8rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* A11y: foco visible consistente (teal) */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(50, 181, 173, 0.28);
+  border-radius: 10px;
 }
+

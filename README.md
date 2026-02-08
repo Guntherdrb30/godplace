@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Godplaces.
 
-## Getting Started
+Plataforma de alquiler temporal tipo Airbnb para Venezuela, operada por una empresa central.
 
-First, run the development server:
+Desarrollado y operado por Trends172Tech.com.
+
+## Stack
+
+- Next.js (App Router) + TypeScript estricto
+- UI: Tailwind CSS + shadcn/ui + lucide-react + framer-motion
+- ORM: Prisma
+- DB: Postgres (Neon)
+- Deploy: Vercel
+- Imágenes/documentos: Vercel Blob (`BLOB_READ_WRITE_TOKEN`)
+- SEO técnico: metadata por página, `robots.ts`, `sitemap.ts`
+- Accesibilidad: labels, aria, foco visible, navegación por teclado
+
+## Roles (RBAC)
+
+- `ROOT`: control absoluto + capa crítica (usuarios críticos, settings globales, integraciones, seguridad)
+  - El primer `ROOT` se crea solo por seed inicial.
+  - Luego, solo `ROOT` puede crear más `ROOT`/`ADMIN` desde `/root/usuarios`.
+- `ADMIN`: operación completa (catálogo, reservas, reportes, KYC)
+- `ALIADO`: registro, KYC, carga de propiedades (publicación requiere aprobación)
+- `CLIENTE`: explora y reserva
+
+## Requisitos
+
+- Node.js 20+ (probado con Node 22)
+- Una base de datos Postgres (Neon recomendado)
+- Un store/token de Vercel Blob
+
+## Configuración (.env)
+
+1. Crea un `.env` basado en `.env.example`.
+2. Variables obligatorias:
+   - `DATABASE_URL`
+   - `AUTH_SECRET`
+   - `BLOB_READ_WRITE_TOKEN` (si vas a subir imágenes/documentos)
+   - `SEED_ROOT_EMAIL` y `SEED_ROOT_PASSWORD` (para el seed inicial)
+
+## Base de datos (Prisma)
+
+1. Instalar dependencias:
+
+```bash
+npm install
+```
+
+2. Crear tablas:
+
+```bash
+npm run prisma:migrate
+```
+
+3. Correr seeds (crea roles, settings base, amenidades, ROOT inicial e inventario interno):
+
+```bash
+npm run db:seed
+```
+
+Notas:
+- El seed crea un usuario de inventario interno (un `ALIADO` con `isInternal=true`) para cargar propiedades internas.
+- Si no defines `SEED_INTERNAL_PASSWORD`, el seed generará una contraseña y la imprimirá en consola.
+
+## Desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy (Vercel)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Configura las variables de entorno en Vercel (las de `.env.example` que apliquen).
+2. Conecta Neon:
+   - `DATABASE_URL` debe apuntar a tu Postgres de Neon con `sslmode=require`.
+3. Vercel Blob:
+   - define `BLOB_READ_WRITE_TOKEN`.
 
-## Learn More
+## IA: asistente “God” (MVP)
 
-To learn more about Next.js, take a look at the following resources:
+- UI obligatoria implementada:
+  - Burbuja flotante abajo a la derecha con etiqueta “God” (abre un panel lateral).
+  - En Home: búsqueda en lenguaje natural + CTA “Buscar con Inteligencia Artificial”.
+  - Modal en Home: “Reservar con IA” (inicia con God).
+- Backend:
+  - `POST /api/chat/session` existe y usa el usuario autenticado (placeholder listo para integrar ChatKit).
+  - Tools (fuente de verdad backend):
+    - `POST /api/tools/search_properties`
+    - `POST /api/tools/get_property`
+    - `POST /api/tools/quote_booking`
+    - `POST /api/tools/create_booking_draft`
+    - `POST /api/tools/get_policies`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Importante:
+- El MVP no integra ChatKit embebido ni OpenAI todavía. Está preparada la arquitectura para function calling.
+- God no debe inventar propiedades ni precios: siempre consultar backend (tools).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Vercel Blob (imágenes y documentos)
 
-## Deploy on Vercel
+Rutas:
+- `POST /api/blob/upload` (ADMIN/ROOT y ALIADO en su propio KYC y propiedades propias)
+- `POST /api/blob/delete` (ADMIN/ROOT)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+DB:
+- Se guarda `url` y `pathname` para borrado.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Limitación MVP:
+- Vercel Blob es público por URL. Para KYC se muestra solo en interfaces privadas (aliado/admin/root), pero se recomienda implementar URLs firmadas o una capa de proxy/descarga autenticada.
+
+## Páginas principales
+
+- Público:
+  - `/` Home (búsqueda IA, destacados, cómo funciona, verificación/seguridad)
+  - `/search` listado con filtros
+  - `/property/[id]` detalle y reserva
+  - `/aliado` iniciar proceso aliado
+  - `/aliado/kyc` carga de documentos
+  - `/aliado/propiedades` CRUD básico del aliado (pendiente aprobación)
+- Auth:
+  - `/login`, `/registro`
+- Backoffice:
+  - `/admin` (ADMIN/ROOT)
+  - `/root` (solo ROOT)
+
+## Checklist MVP (SEO/A11y/Perf)
+
+- SEO:
+  - `metadata` por página (base + por rutas clave)
+  - `robots.ts` y `sitemap.ts`
+- A11y:
+  - labels explícitos en formularios
+  - foco visible consistente
+  - navegación por teclado en menús/diálogos
+
+## TODO recomendado (siguiente iteración)
+
+1. ChatKit embed real + OpenAI (tools conectadas desde el agente).
+2. Acceso privado/firmado para documentos KYC en Blob.
+3. Disponibilidad real por fechas (bloqueos) y validación contra reservas.
+4. Pagos y payouts reales (actualmente placeholders).
+5. Flujo de aprobación de propiedades con notas y notificaciones.
+

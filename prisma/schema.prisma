@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum KycDocumentType {
+  CEDULA
+  RIF
+  SELFIE_CEDULA
+  PROPIEDAD_O_PODER
+}
+
+enum AllyStatus {
+  PENDING_KYC
+  KYC_APPROVED
+  KYC_REJECTED
+  SUSPENDED
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_APPROVAL
+  PUBLISHED
+  REJECTED
+}
+
+enum BookingStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String
+  nombre       String?
+  status       UserStatus  @default(ACTIVE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  roles        UserRole[]
+  allyProfile  AllyProfile?
+  bookings     Booking[]
+  sessions     Session[]
+  auditLogs    AuditLog[]  @relation("AuditActor")
+  settingsEdits SystemSetting[] @relation("SettingEditor")
+}
+
+model Role {
+  id        String     @id @default(cuid())
+  code      String     @unique
+  nombre    String
+  createdAt DateTime   @default(now())
+
+  users     UserRole[]
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AllyProfile {
+  id         String     @id @default(cuid())
+  userId     String     @unique
+  status     AllyStatus @default(PENDING_KYC)
+  isInternal Boolean    @default(false)
+  notasAdmin String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kycDocs    KycDocument[]
+  properties Property[]
+  payouts    Payout[]
+
+  @@index([status])
+  @@index([isInternal])
+}
+
+model KycDocument {
+  id           String          @id @default(cuid())
+  allyProfileId String
+  type         KycDocumentType
+  status       KycStatus       @default(PENDING)
+  url          String
+  pathname     String
+  notasAdmin   String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  allyProfile AllyProfile @relation(fields: [allyProfileId], references: [id], onDelete: Cascade)
+
+  @@index([allyProfileId])
+  @@index([status])
+  @@index([type])
+}
+
+model Property {
+  id            String         @id @default(cuid())
+  allyProfileId String
+  status        PropertyStatus @default(DRAFT)
+
+  titulo        String
+  descripcion   String
+  ciudad        String
+  estadoRegion  String
+  direccion     String?
+
+  huespedesMax  Int
+  habitaciones  Int @default(1)
+  camas         Int @default(1)
+  banos         Int @default(1)
+
+  currency      String @default("USD")
+  pricePerNightCents Int
+
+  notasAdmin    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  allyProfile   AllyProfile @relation(fields: [allyProfileId], references: [id], onDelete: Restrict)
+  images        PropertyImage[]
+  amenities     PropertyAmenity[]
+  availability  Availability[]
+  bookings      Booking[]
+
+  @@index([status])
+  @@index([ciudad])
+  @@index([allyProfileId])
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  url        String
+  pathname   String
+  alt        String?
+  orden      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model Amenity {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  nombre    String
+  icon      String?
+  createdAt DateTime @default(now())
+
+  properties PropertyAmenity[]
+}
+
+model PropertyAmenity {
+  id        String   @id @default(cuid())
+  propertyId String
+  amenityId String
+  createdAt DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity  Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, amenityId])
+  @@index([amenityId])
+}
+
+model Availability {
+  id         String   @id @default(cuid())
+  propertyId String
+  desde      DateTime
+  hasta      DateTime
+  motivo     String?
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([desde])
+  @@index([hasta])
+}
+
+model Booking {
+  id           String       @id @default(cuid())
+  status       BookingStatus @default(DRAFT)
+  propertyId   String
+  userId       String
+  checkIn      DateTime
+  checkOut     DateTime
+  guests       Int
+  nights       Int
+
+  currency     String
+  pricePerNightCents Int
+  subtotalCents Int
+  platformFeeCents Int
+  allyEarningsCents Int
+  totalCents    Int
+  snapshot      Json
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  payments Payment[]
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([status])
+  @@index([checkIn])
+  @@index([checkOut])
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  bookingId  String
+  provider   String?  // TODO: pasarela real
+  reference  String?  // TODO: referencia externa
+  status     String   @default("PENDING")
+  amountCents Int     @default(0)
+  currency   String   @default("USD")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+model Payout {
+  id           String   @id @default(cuid())
+  allyProfileId String
+  status       String   @default("PENDING")
+  amountCents  Int      @default(0)
+  currency     String   @default("USD")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  allyProfile AllyProfile @relation(fields: [allyProfileId], references: [id], onDelete: Cascade)
+
+  @@index([allyProfileId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  accion      String
+  entidadTipo String?
+  entidadId   String?
+  metadata    Json?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([accion])
+  @@index([createdAt])
+}
+
+model SystemSetting {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  value         Json
+  updatedAt     DateTime @updatedAt
+  updatedByUserId String?
+
+  updatedBy User? @relation("SettingEditor", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+}
+
