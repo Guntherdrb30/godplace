@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
@@ -22,11 +22,12 @@ export function GodSheet(props: {
 }) {
   const { open, onOpenChange, mensajeInicial, onConsumedMensajeInicial } = props;
   const [texto, setTexto] = React.useState("");
+  const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
+
   const [msgs, setMsgs] = React.useState<Msg[]>([
     {
       role: "assistant",
-      content:
-        "Soy God. En este MVP el chat es un placeholder, pero ya existe la arquitectura de tools y la sesión de ChatKit. No invento propiedades ni precios: consulto el backend.",
+      content: "Soy God. En este MVP el chat es un placeholder. No invento propiedades ni precios: consulto el catálogo real.",
     },
   ]);
   const [cargandoSesion, setCargandoSesion] = React.useState(false);
@@ -48,19 +49,11 @@ export function GodSheet(props: {
   React.useEffect(() => {
     if (!open) return;
     if (!mensajeInicial) return;
-    const msg = mensajeInicial;
+    const msg = mensajeInicial.trim();
     onConsumedMensajeInicial();
-    setMsgs((m) => [...m, { role: "user", content: msg }]);
-    setTimeout(() => {
-      setMsgs((m) => [
-        ...m,
-        {
-          role: "assistant",
-          content:
-            "Recibido. En el siguiente paso conectaremos ChatKit + OpenAI para interpretar tu solicitud y usar tools como search_properties y quote_booking. Por ahora, te llevo a /search para que explores propiedades publicadas.",
-        },
-      ]);
-    }, 250);
+    if (!msg) return;
+    setTexto(msg);
+    setTimeout(() => inputRef.current?.focus(), 0);
   }, [open, mensajeInicial, onConsumedMensajeInicial]);
 
   const enviar = async () => {
@@ -73,7 +66,7 @@ export function GodSheet(props: {
       {
         role: "assistant",
         content:
-          "Gracias. MVP: aún no está embebido ChatKit. Puedes usar /search, o si eres ADMIN/ROOT gestionar catálogo en /admin.",
+          "Gracias. MVP: aún no está conectado el chat real. Mientras tanto, puedes usar /search o (si eres ADMIN/ROOT) gestionar el catálogo en /admin.",
       },
     ]);
   };
@@ -82,14 +75,8 @@ export function GodSheet(props: {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle className="flex items-center justify-between">
-            <span>
-              God <span className="text-sm text-muted-foreground">(asistente)</span>
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {cargandoSesion ? "Conectando..." : "Listo"}
-            </span>
-          </SheetTitle>
+          <SheetTitle>God — Asistente de Godplaces.</SheetTitle>
+          <SheetDescription>Operado por Trends172Tech.com</SheetDescription>
         </SheetHeader>
 
         <Separator className="my-4" />
@@ -100,9 +87,7 @@ export function GodSheet(props: {
               key={idx}
               className={[
                 "max-w-[92%] rounded-xl px-3 py-2 text-sm leading-6",
-                m.role === "user"
-                  ? "ml-auto bg-marca-petroleo text-white"
-                  : "mr-auto bg-white text-foreground border",
+                m.role === "user" ? "ml-auto bg-marca-petroleo text-white" : "mr-auto bg-white text-foreground border",
               ].join(" ")}
             >
               {m.content}
@@ -116,25 +101,24 @@ export function GodSheet(props: {
           </label>
           <Textarea
             id="god-input"
+            ref={inputRef}
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            placeholder="Ej: Apartamento para 4 personas, 2 noches en la playa, con vista al mar en Tucacas"
+            placeholder="Cuéntanos cómo quieres hospedarte… Ej: ‘Apartamento para 4 personas, 2 noches en la playa, con vista al mar en Tucacas’"
             rows={3}
           />
           <div className="flex items-center justify-between gap-2">
             <Button type="button" variant="outline" onClick={() => setTexto("")}>
               Limpiar
             </Button>
-            <Button
-              type="button"
-              className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]"
-              onClick={enviar}
-            >
-              Enviar a God
+            <Button type="button" className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" onClick={enviar}>
+              Enviar
             </Button>
           </div>
+          {cargandoSesion ? <div className="text-xs text-muted-foreground">Conectando…</div> : null}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
+
