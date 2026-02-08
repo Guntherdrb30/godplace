@@ -37,6 +37,9 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/reservas">
                 Reservas
               </Link>
+              <Link className="text-muted-foreground hover:text-foreground" href="/admin/visual">
+                Visual
+              </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/withdrawals">
                 Retiros{" "}
                 {pendingWithdrawals > 0 ? (

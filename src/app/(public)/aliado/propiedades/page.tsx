@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { buildMetadata } from "@/lib/seo";
 import { requireRole } from "@/lib/auth/guards";

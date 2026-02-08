@@ -1,5 +1,5 @@
-﻿import { Container } from "@/components/site/container";
-import { HomeHero } from "@/components/site/home-hero";
+import { Container } from "@/components/site/container";
+import { HomeHeroServer } from "@/components/site/home-hero.server";
 import { PropertyCard } from "@/components/site/property-card";
 import { buildMetadata } from "@/lib/seo";
 import { prisma } from "@/lib/prisma";
@@ -27,7 +27,7 @@ export default async function HomePage() {
   return (
     <div>
       <Container>
-        <HomeHero />
+        <HomeHeroServer />
 
         <section className="mt-14">
           <div className="flex items-end justify-between gap-4">

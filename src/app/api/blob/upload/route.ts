@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
 
 const metaSchema = z.object({
-  folder: z.enum(["properties", "kyc"]),
+  folder: z.enum(["properties", "kyc", "site"]),
   entityId: z.string().min(1),
 });
 
@@ -30,13 +30,7 @@ export async function POST(req: Request) {
     meta.data.entityId === user.allyProfileId;
 
   let isAliadoProperty = false;
-  if (
-    !isStaff &&
-    !!user &&
-    user.roles.includes("ALIADO") &&
-    meta.data.folder === "properties" &&
-    !!user.allyProfileId
-  ) {
+  if (!isStaff && !!user && user.roles.includes("ALIADO") && meta.data.folder === "properties" && !!user.allyProfileId) {
     const prop = await prisma.property.findUnique({
       where: { id: meta.data.entityId },
       select: { allyProfileId: true },
@@ -44,6 +38,7 @@ export async function POST(req: Request) {
     isAliadoProperty = !!prop && prop.allyProfileId === user.allyProfileId;
   }
 
+  // `site`: solo ADMIN/ROOT.
   if (!isStaff && !isAliadoKyc && !isAliadoProperty) {
     return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
   }
@@ -68,3 +63,4 @@ export async function POST(req: Request) {
     contentType: res.contentType,
   });
 }
+

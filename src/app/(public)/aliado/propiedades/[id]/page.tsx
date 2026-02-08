@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Container } from "@/components/site/container";
 import { buildMetadata } from "@/lib/seo";

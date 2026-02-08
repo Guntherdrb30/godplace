@@ -1,4 +1,4 @@
-﻿import { Container } from "@/components/site/container";
+import { Container } from "@/components/site/container";
 import { buildMetadata } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

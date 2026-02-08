@@ -217,6 +217,24 @@ model WithdrawalRequest {
   @@index([createdAt])
 }
 
+// Visual/marketing: carrusel de imágenes en Home (controlado desde Admin).
+model HeroSlide {
+  id            String   @id @default(cuid())
+  title         String?
+  subtitle      String?
+  ctaText       String?
+  ctaHref       String?
+  imageUrl      String
+  imagePathname String
+  orden         Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([active])
+  @@index([orden])
+}
+
 model KycDocument {
   id           String          @id @default(cuid())
   allyProfileId String

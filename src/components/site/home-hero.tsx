@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { HeroCarousel, type HeroSlidePublic } from "@/components/site/hero-carousel";
 
-export function HomeHero() {
+export function HomeHero(props: { slides: HeroSlidePublic[] }) {
   const god = useGod();
   const [texto, setTexto] = React.useState("");
 
@@ -71,27 +72,12 @@ export function HomeHero() {
         </motion.div>
 
         <motion.div
-          className="relative overflow-hidden rounded-3xl border bg-white/80 p-6 shadow-suave"
+          className="relative"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.05, ease: "easeOut" }}
         >
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(50,181,173,0.10),transparent_40%,rgba(0,75,87,0.08))]" />
-          <div className="relative space-y-4">
-            <h2 className="font-[var(--font-display)] text-2xl tracking-tight">Confianza operada por una empresa central</h2>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li>Verificación manual de aliados (KYC) por Admin/Root.</li>
-              <li>Catálogo controlado: publicación con aprobación.</li>
-              <li>Soporte operativo y auditoría de acciones.</li>
-            </ul>
-            <div className="rounded-xl border bg-white p-4 text-sm">
-              <p className="font-medium text-foreground">Nota MVP</p>
-              <p className="mt-1 text-muted-foreground">
-                Los pagos reales no están activos todavía. Se registra la reserva y el split (fee plataforma / ganancias
-                aliado) como snapshot.
-              </p>
-            </div>
-          </div>
+          <HeroCarousel slides={props.slides} />
         </motion.div>
       </div>
     </section>

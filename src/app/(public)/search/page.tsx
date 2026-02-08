@@ -1,4 +1,4 @@
-﻿import { Container } from "@/components/site/container";
+import { Container } from "@/components/site/container";
 import { PropertyCard } from "@/components/site/property-card";
 import { buildMetadata } from "@/lib/seo";
 import { prisma } from "@/lib/prisma";
