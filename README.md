@@ -35,6 +35,7 @@ Desarrollado y operado por Trends172Tech.com.
 1. Crea un `.env` basado en `.env.example`.
 2. Variables obligatorias:
    - `DATABASE_URL`
+   - `DIRECT_URL` (conexión directa sin pooler; Prisma la usa para migrations/introspection)
    - `AUTH_SECRET`
    - `BLOB_READ_WRITE_TOKEN` (si vas a subir imágenes/documentos)
    - `SEED_ROOT_EMAIL` y `SEED_ROOT_PASSWORD` (para el seed inicial)
@@ -75,9 +76,13 @@ Abrir `http://localhost:3000`.
 
 1. Configura las variables de entorno en Vercel (las de `.env.example` que apliquen).
 2. Conecta Neon:
-   - `DATABASE_URL` debe apuntar a tu Postgres de Neon con `sslmode=require`.
+   - `DATABASE_URL` debe apuntar a tu Postgres de Neon con `sslmode=require` (recomendado: string del pooler en serverless).
+   - `DIRECT_URL` debe apuntar al string directo (sin pooler) para que `prisma migrate deploy` funcione bien.
 3. Vercel Blob:
    - define `BLOB_READ_WRITE_TOKEN`.
+4. Migrations + seed (primer deploy con DB):
+   - `npm run vercel-build` corre `prisma migrate deploy` automáticamente si existe `prisma/migrations` y `DATABASE_URL`.
+   - Para correr el seed una sola vez, define `RUN_SEED=1` temporalmente en Vercel y redeploy; luego elimínala.
 
 ## IA: asistente “God” (MVP)
 
@@ -142,4 +147,3 @@ Limitación MVP:
 3. Disponibilidad real por fechas (bloqueos) y validación contra reservas.
 4. Pagos y payouts reales (actualmente placeholders).
 5. Flujo de aprobación de propiedades con notas y notificaciones.
-

@@ -5,6 +5,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Use a direct (non-pooler) connection string for migrations/introspection.
+  directUrl = env("DIRECT_URL")
 }
 
 enum UserStatus {
@@ -308,4 +310,3 @@ model SystemSetting {
 
   updatedBy User? @relation("SettingEditor", fields: [updatedByUserId], references: [id], onDelete: SetNull)
 }
-
