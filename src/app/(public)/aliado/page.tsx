@@ -22,17 +22,23 @@ async function iniciarProceso() {
     create: { userId: user.id, roleId: roleAliado.id },
   });
 
-  await prisma.allyProfile.upsert({
+  const ally = await prisma.allyProfile.upsert({
     where: { userId: user.id },
     update: { status: "PENDING_KYC" },
     create: { userId: user.id, status: "PENDING_KYC", isInternal: false },
+  });
+
+  await prisma.allyWallet.upsert({
+    where: { allyProfileId: ally.id },
+    update: {},
+    create: { allyProfileId: ally.id },
   });
 
   await registrarAuditoria({
     actorUserId: user.id,
     accion: "ally.start_kyc",
     entidadTipo: "ally_profile",
-    entidadId: user.id,
+    entidadId: ally.id,
   });
 
   redirect("/aliado/kyc");

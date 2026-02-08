@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth/guards";
 import { Container } from "@/components/site/container";
+import { prisma } from "@/lib/prisma";
 
 export default async function AdminLayout(props: { children: React.ReactNode }) {
   await requireRole(["ADMIN", "ROOT"]);
+
+  let pendingWithdrawals = 0;
+  try {
+    pendingWithdrawals = await prisma.withdrawalRequest.count({ where: { status: "PENDING" } });
+  } catch {
+    pendingWithdrawals = 0;
+  }
 
   return (
     <div className="min-h-screen">
@@ -28,6 +36,14 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
               </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/reservas">
                 Reservas
+              </Link>
+              <Link className="text-muted-foreground hover:text-foreground" href="/admin/withdrawals">
+                Retiros{" "}
+                {pendingWithdrawals > 0 ? (
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                    {pendingWithdrawals}
+                  </span>
+                ) : null}
               </Link>
             </nav>
           </div>

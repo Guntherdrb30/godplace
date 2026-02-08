@@ -115,6 +115,27 @@ DB:
 Limitación MVP:
 - Vercel Blob es público por URL. Para KYC se muestra solo en interfaces privadas (aliado/admin/root), pero se recomienda implementar URLs firmadas o una capa de proxy/descarga autenticada.
 
+## Billetera y retiros (MVP)
+
+Objetivo:
+- Los aliados acumulan ganancias en una billetera interna (en centavos USD).
+- Pueden solicitar retiros (mínimo $100) a la cuenta bancaria registrada en su perfil.
+- ADMIN/ROOT gestionan solicitudes (aprobar/rechazar/marcar pagado) y pueden subir comprobante a Vercel Blob.
+- Todo queda auditable en `audit_logs`.
+
+Rutas UI:
+- Aliado: `/aliado/billetera`
+- Admin/Root: `/admin/withdrawals`
+
+Variables de entorno nuevas:
+- `FINANCE_EMAIL`: destinatario de notificaciones de retiros.
+- `EMAIL_FROM`: remitente (ej: `Godplaces <no-reply@tudominio.com>`).
+- `RESEND_API_KEY`: API key de Resend (opcional en MVP; si falta, se loguea un TODO server-side).
+
+Notas de seguridad:
+- No se guarda la cuenta completa del aliado; solo últimos 4 dígitos.
+- El comprobante se guarda en Blob con `url` + `pathname`.
+
 ## Páginas principales
 
 - Público:

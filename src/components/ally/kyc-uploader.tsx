@@ -145,8 +145,8 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Se sube a Vercel Blob. En MVP, los blobs son públicos por URL; evita compartir
-          enlaces. TODO: URLs firmadas/privadas.
+          Se sube a Vercel Blob. En MVP, los blobs son públicos por URL; evita compartir enlaces. TODO: URLs
+          firmadas/privadas.
         </p>
       </div>
 
@@ -163,23 +163,12 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
               <div key={d.id} className="rounded-2xl border bg-white/85 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <div className="font-medium text-foreground">
-                      {TIPOS.find((t) => t.value === d.type)?.label || d.type}
-                    </div>
+                    <div className="font-medium text-foreground">{TIPOS.find((t) => t.value === d.type)?.label || d.type}</div>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      Estado:{" "}
-                      <span className="font-medium text-foreground">
-                        {labelKycStatus(d.status)}
-                      </span>
+                      Estado: <span className="font-medium text-foreground">{labelKycStatus(d.status)}</span>
                     </div>
-                    {d.notasAdmin ? (
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        Nota admin: {d.notasAdmin}
-                      </div>
-                    ) : null}
-                    <div className="mt-2 truncate text-xs text-muted-foreground">
-                      {d.pathname}
-                    </div>
+                    {d.notasAdmin ? <div className="mt-2 text-xs text-muted-foreground">Nota admin: {d.notasAdmin}</div> : null}
+                    <div className="mt-2 truncate text-xs text-muted-foreground">{d.pathname}</div>
                   </div>
                   <div className="flex gap-2">
                     <a
@@ -207,3 +196,4 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
     </div>
   );
 }
+

@@ -19,13 +19,7 @@ export async function SiteHeader() {
       <Container className="flex h-16 items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/logo-godplaces-placeholder.svg"
-              alt="Logo de Godplaces."
-              width={34}
-              height={34}
-              priority
-            />
+            <Image src="/logo-godplaces-placeholder.svg" alt="Logo de Godplaces." width={34} height={34} priority />
             <span className="font-[var(--font-display)] text-lg tracking-tight text-brand-secondary">
               Godplaces<span className="text-brand-primary">.</span>
             </span>
@@ -70,26 +64,29 @@ export async function SiteHeader() {
                 <DropdownMenuItem asChild>
                   <Link href="/aliado">Ser aliado</Link>
                 </DropdownMenuItem>
-                {user.roles.includes("ALIADO") && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/aliado/kyc">Mi verificación (KYC)</Link>
-                  </DropdownMenuItem>
-                )}
-                {user.roles.includes("ALIADO") && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/aliado/propiedades">Mis propiedades</Link>
-                  </DropdownMenuItem>
-                )}
-                {(user.roles.includes("ADMIN") || user.roles.includes("ROOT")) && (
+                {user.roles.includes("ALIADO") ? (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/aliado/kyc">Mi verificación (KYC)</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/aliado/propiedades">Mis propiedades</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/aliado/billetera">Mi billetera</Link>
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
+                {user.roles.includes("ADMIN") || user.roles.includes("ROOT") ? (
                   <DropdownMenuItem asChild>
                     <Link href="/admin">Administración</Link>
                   </DropdownMenuItem>
-                )}
-                {user.roles.includes("ROOT") && (
+                ) : null}
+                {user.roles.includes("ROOT") ? (
                   <DropdownMenuItem asChild>
                     <Link href="/root">ROOT</Link>
                   </DropdownMenuItem>
-                )}
+                ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <form action="/api/auth/logout" method="post">
@@ -104,3 +101,4 @@ export async function SiteHeader() {
     </header>
   );
 }
+

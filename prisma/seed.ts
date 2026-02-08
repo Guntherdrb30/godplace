@@ -36,7 +36,6 @@ async function main() {
   const rootNombre = process.env.SEED_ROOT_NOMBRE?.trim() || "ROOT";
 
   const rootHash = await bcrypt.hash(rootPassword, 12);
-
   const root = await prisma.user.upsert({
     where: { email: rootEmail },
     update: { nombre: rootNombre, passwordHash: rootHash },
@@ -51,20 +50,14 @@ async function main() {
   });
 
   // Inventario interno: propiedades operadas por la empresa central.
-  const internalEmail =
-    process.env.SEED_INTERNAL_EMAIL?.toLowerCase().trim() ||
-    "inventario@trends172tech.com";
+  const internalEmail = (process.env.SEED_INTERNAL_EMAIL || "inventario@trends172tech.com").toLowerCase().trim();
   const internalPassword = process.env.SEED_INTERNAL_PASSWORD || randomPassword();
   const internalHash = await bcrypt.hash(internalPassword, 12);
 
   const internalUser = await prisma.user.upsert({
     where: { email: internalEmail },
     update: { passwordHash: internalHash, nombre: "Inventario interno" },
-    create: {
-      email: internalEmail,
-      passwordHash: internalHash,
-      nombre: "Inventario interno",
-    },
+    create: { email: internalEmail, passwordHash: internalHash, nombre: "Inventario interno" },
   });
 
   const roleAliado = await prisma.role.findUniqueOrThrow({ where: { code: "ALIADO" } });
@@ -74,10 +67,17 @@ async function main() {
     create: { userId: internalUser.id, roleId: roleAliado.id },
   });
 
-  await prisma.allyProfile.upsert({
+  const internalProfile = await prisma.allyProfile.upsert({
     where: { userId: internalUser.id },
     update: { isInternal: true, status: "KYC_APPROVED" },
     create: { userId: internalUser.id, isInternal: true, status: "KYC_APPROVED" },
+  });
+
+  // Billetera del aliado (contabilidad interna).
+  await prisma.allyWallet.upsert({
+    where: { allyProfileId: internalProfile.id },
+    update: {},
+    create: { allyProfileId: internalProfile.id },
   });
 
   const settings = [
@@ -94,7 +94,7 @@ async function main() {
   }
 
   const amenities = [
-    { slug: "wifi", nombre: "Wi‑Fi" },
+    { slug: "wifi", nombre: "Wi-Fi" },
     { slug: "aire-acondicionado", nombre: "Aire acondicionado" },
     { slug: "estacionamiento", nombre: "Estacionamiento" },
     { slug: "piscina", nombre: "Piscina" },
@@ -114,6 +114,16 @@ async function main() {
     });
   }
 
+  // Backfill: garantizar billetera para aliados existentes.
+  const allyProfiles = await prisma.allyProfile.findMany({ select: { id: true } });
+  for (const ap of allyProfiles) {
+    await prisma.allyWallet.upsert({
+      where: { allyProfileId: ap.id },
+      update: {},
+      create: { allyProfileId: ap.id },
+    });
+  }
+
   // Nota de seguridad: si no se definió SEED_INTERNAL_PASSWORD, se imprimirá aquí.
   if (!process.env.SEED_INTERNAL_PASSWORD) {
     console.log("[SEED] Contraseña generada para inventario interno:", internalPassword);
@@ -129,3 +139,4 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+
