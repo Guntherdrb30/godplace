@@ -27,8 +27,13 @@ export async function POST(req: Request) {
   });
   if (!parsed.success) return redirectConError(req, "Datos inválidos.");
 
-  const roleCliente = await prisma.role.findUnique({ where: { code: "CLIENTE" } });
-  if (!roleCliente) return redirectConError(req, "Configuración incompleta: falta rol CLIENTE.");
+  // En producción, `prisma db seed` puede no ejecutarse. Para que el registro funcione
+  // siempre, garantizamos el rol base CLIENTE de forma idempotente.
+  const roleCliente = await prisma.role.upsert({
+    where: { code: "CLIENTE" },
+    update: { nombre: "CLIENTE" },
+    create: { code: "CLIENTE", nombre: "CLIENTE" },
+  });
 
   const passwordHash = await hashPassword(parsed.data.password);
 
