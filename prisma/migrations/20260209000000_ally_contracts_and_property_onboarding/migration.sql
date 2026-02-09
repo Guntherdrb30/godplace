@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "PropertyOperationType" AS ENUM ('RENT', 'SALE');
 
 -- AlterTable
