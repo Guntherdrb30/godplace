@@ -14,10 +14,14 @@ export async function middleware(req: NextRequest) {
   if (!esAdmin && !esRoot) return NextResponse.next();
 
   const token = req.cookies.get(COOKIE_RBAC)?.value;
-  if (!token) return NextResponse.redirect(new URL("/login", req.url));
+  // RBAC cookie is a performance optimization (Edge gate) but the real source of truth
+  // is the server-side session + DB in `requireRole(...)`.
+  // If RBAC is missing/invalid (e.g. AUTH_SECRET misconfigured), let the request pass
+  // and rely on server-side guards instead of hard-blocking `/admin` and `/root`.
+  if (!token) return NextResponse.next();
 
   const payload = await verificarRbacToken(token);
-  if (!payload) return NextResponse.redirect(new URL("/login", req.url));
+  if (!payload) return NextResponse.next();
 
   if (esRoot && !payload.roles.includes("ROOT")) {
     return NextResponse.redirect(new URL("/no-autorizado", req.url));
@@ -32,4 +36,3 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/admin/:path*", "/root/:path*"],
 };
-
