@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { dbDisponible } from "@/lib/db";
-import { HomeHero } from "@/components/site/home-hero";
+import { HomeHeroFull } from "@/components/site/home-hero-full";
 import type { HeroSlidePublic } from "@/components/site/hero-carousel";
 
 function fallbackSlides(): HeroSlidePublic[] {
@@ -50,5 +50,5 @@ export async function HomeHeroServer() {
     }
   }
 
-  return <HomeHero slides={slides} />;
+  return <HomeHeroFull slides={slides} />;
 }

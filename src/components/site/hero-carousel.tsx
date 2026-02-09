@@ -15,8 +15,9 @@ export type HeroSlidePublic = {
   imageUrl: string;
 };
 
-export function HeroCarousel(props: { slides: HeroSlidePublic[] }) {
+export function HeroCarousel(props: { slides: HeroSlidePublic[]; variant?: "card" | "full" }) {
   const slides = props.slides;
+  const variant = props.variant ?? "card";
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
 
@@ -39,7 +40,11 @@ export function HeroCarousel(props: { slides: HeroSlidePublic[] }) {
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl border bg-white/80 shadow-suave"
+      className={
+        variant === "full"
+          ? "relative w-full overflow-hidden border-b bg-white/40"
+          : "relative overflow-hidden rounded-3xl border bg-white/80 shadow-suave"
+      }
       aria-roledescription="carousel"
       aria-label="Carrusel principal"
       onPointerEnter={() => setPaused(true)}
@@ -47,7 +52,13 @@ export function HeroCarousel(props: { slides: HeroSlidePublic[] }) {
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
-      <div className="relative aspect-[4/3] sm:aspect-[16/11]">
+      <div
+        className={
+          variant === "full"
+            ? "relative h-[56vh] min-h-[340px] max-h-[640px]"
+            : "relative aspect-[4/3] sm:aspect-[16/11]"
+        }
+      >
         {current ? (
           <>
             <Image
