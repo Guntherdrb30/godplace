@@ -18,33 +18,44 @@ function redirectConError(req: Request, msg: string) {
 }
 
 export async function POST(req: Request) {
-  const form = await req.formData();
-  const parsed = schema.safeParse({
-    identifier: String(form.get("identifier") || "").toLowerCase().trim(),
-    password: String(form.get("password") || ""),
-  });
-  if (!parsed.success) return redirectConError(req, "Datos invÃ¡lidos.");
+  try {
+    const form = await req.formData();
+    const parsed = schema.safeParse({
+      identifier: String(form.get("identifier") || "").toLowerCase().trim(),
+      password: String(form.get("password") || ""),
+    });
+    if (!parsed.success) return redirectConError(req, "Datos invalidos.");
 
-  const where = parsed.data.identifier.includes("@")
-    ? { email: parsed.data.identifier }
-    : { username: parsed.data.identifier };
+    const where = parsed.data.identifier.includes("@")
+      ? { email: parsed.data.identifier }
+      : { username: parsed.data.identifier };
 
-  const user = await prisma.user.findFirst({
-    where: where as { email?: string; username?: string },
-    include: { roles: { include: { role: true } } },
-  });
-  if (!user) return redirectConError(req, "Correo/usuario o contraseÃ±a incorrectos.");
-  if (user.status !== "ACTIVE") return redirectConError(req, "Tu cuenta estÃ¡ suspendida.");
+    const user = await prisma.user.findFirst({
+      where: where as { email?: string; username?: string },
+      include: { roles: { include: { role: true } } },
+    });
+    if (!user) return redirectConError(req, "Correo/usuario o contrasena incorrectos.");
+    if (user.status !== "ACTIVE") return redirectConError(req, "Tu cuenta esta suspendida.");
 
-  const ok = await verifyPassword(parsed.data.password, user.passwordHash);
-  if (!ok) return redirectConError(req, "Correo/usuario o contraseÃ±a incorrectos.");
+    const ok = await verifyPassword(parsed.data.password, user.passwordHash);
+    if (!ok) return redirectConError(req, "Correo/usuario o contrasena incorrectos.");
 
-  const roles = user.roles.map((ur) => ur.role.code);
-  const { token, expiresAt } = await crearSesion(user.id);
-  await setCookieSesion(token, expiresAt);
+    const roles = user.roles.map((ur) => ur.role.code);
+    const { token, expiresAt } = await crearSesion(user.id);
+    await setCookieSesion(token, expiresAt);
 
-  const rbac = await firmarRbacToken({ userId: user.id, roles });
-  await setCookieRbac(rbac, expiresAt);
+    // RBAC token is optional. Server-side guards use session+DB roles, so do not hard-fail login.
+    try {
+      const rbac = await firmarRbacToken({ userId: user.id, roles });
+      await setCookieRbac(rbac, expiresAt);
+    } catch (e) {
+      console.warn("[auth/login] RBAC token skipped:", e);
+    }
 
-  return NextResponse.redirect(new URL("/", req.url), { status: 303 });
+    return NextResponse.redirect(new URL("/", req.url), { status: 303 });
+  } catch (e) {
+    console.error("[auth/login] error:", e);
+    return redirectConError(req, "No se pudo iniciar sesion. Intenta de nuevo.");
+  }
 }
+
