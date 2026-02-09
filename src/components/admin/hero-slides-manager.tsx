@@ -183,7 +183,7 @@ export function HeroSlidesManager(props: { initialSlides: AdminHeroSlide[] }) {
           </div>
           <Dialog open={openCreate} onOpenChange={(v) => (setOpenCreate(v), v ? null : resetCreate())}>
             <DialogTrigger asChild>
-              <Button className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">Agregar slide</Button>
+              <Button variant="brand">Agregar slide</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[560px]">
               <DialogHeader>

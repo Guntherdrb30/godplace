@@ -17,7 +17,7 @@ export default function NoAutorizadoPage() {
           No tienes permisos para acceder a esta sección.
         </p>
         <div className="mt-6 flex gap-3">
-          <Button asChild className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+          <Button asChild variant="brand">
             <Link href="/">Ir al inicio</Link>
           </Button>
           <Button asChild variant="outline">

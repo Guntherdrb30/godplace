@@ -33,11 +33,10 @@ export default function OpenGraphImage() {
           <div style={{ fontSize: 22, color: "rgba(0,75,87,0.7)" }}>
             Desarrollado y operado por Trends172Tech.com
           </div>
-          <div style={{ width: 90, height: 14, borderRadius: 999, background: "#FACC15" }} />
+          <div style={{ width: 90, height: 14, borderRadius: 999, background: "#32B5AD" }} />
         </div>
       </div>
     ),
     size,
   );
 }
-

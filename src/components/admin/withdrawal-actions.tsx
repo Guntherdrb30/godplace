@@ -101,7 +101,7 @@ export function AdminWithdrawalActions(props: {
         Rechazar
       </Button>
 
-      <Button type="button" size="sm" className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" onClick={() => setPaidOpen(true)} disabled={!!loading || props.status !== "APPROVED"}>
+      <Button type="button" size="sm" variant="brand" onClick={() => setPaidOpen(true)} disabled={!!loading || props.status !== "APPROVED"}>
         Marcar pagado
       </Button>
 

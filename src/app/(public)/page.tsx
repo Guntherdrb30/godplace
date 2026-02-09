@@ -132,7 +132,7 @@ export default async function HomePage() {
               (ROOT/ADMIN/ALIADO/CLIENTE) y verificación manual.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button asChild className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+              <Button asChild variant="brand">
                 <Link href="/search">Explorar propiedades</Link>
               </Button>
               <Button asChild variant="outline" className="border-white/30 text-white hover:bg-white/10">

@@ -87,7 +87,7 @@ export function AllyWithdrawDialog(props: {
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
               Cancelar
             </Button>
-            <Button type="button" className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" onClick={submit} disabled={loading}>
+            <Button type="button" variant="brand" onClick={submit} disabled={loading}>
               {loading ? "Enviando..." : "Solicitar retiro"}
             </Button>
           </div>

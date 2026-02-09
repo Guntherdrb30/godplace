@@ -168,7 +168,7 @@ export default async function AdminPropiedadesPage() {
                   <Input id="pricePerNightCents" name="pricePerNightCents" type="number" min={1} defaultValue={5000} />
                 </div>
               </div>
-              <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+              <Button variant="brand" type="submit">
                 Crear propiedad
               </Button>
             </form>
@@ -205,7 +205,7 @@ export default async function AdminPropiedadesPage() {
                         <form action={cambiarEstadoPropiedad}>
                           <input type="hidden" name="id" value={p.id} />
                           <input type="hidden" name="status" value="PUBLISHED" />
-                          <Button size="sm" className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+                          <Button size="sm" variant="brand" type="submit">
                             Verificar
                           </Button>
                         </form>

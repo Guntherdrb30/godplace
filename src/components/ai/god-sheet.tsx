@@ -111,7 +111,7 @@ export function GodSheet(props: {
             <Button type="button" variant="outline" onClick={() => setTexto("")}>
               Limpiar
             </Button>
-            <Button type="button" className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" onClick={enviar}>
+            <Button type="button" variant="brand" onClick={enviar}>
               Enviar
             </Button>
           </div>
@@ -121,4 +121,3 @@ export function GodSheet(props: {
     </Sheet>
   );
 }
-

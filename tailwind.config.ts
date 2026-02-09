@@ -14,13 +14,13 @@ export default {
         brand: {
           primary: "#32B5AD",
           secondary: "#004B57",
-          accent: "#FACC15",
+          accent: "#32B5AD",
         },
         marca: {
           turquesa: "#32B5AD",
           petroleo: "#004B57",
           blanco: "#FFFFFF",
-          cta: "#FACC15",
+          cta: "#32B5AD",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

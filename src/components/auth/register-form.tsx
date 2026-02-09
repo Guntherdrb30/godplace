@@ -192,7 +192,7 @@ export function RegisterForm() {
         </div>
       ) : null}
 
-      <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+      <Button variant="brand" type="submit">
         Crear cuenta
       </Button>
     </form>

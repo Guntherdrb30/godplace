@@ -58,7 +58,7 @@ export function HomeHero(props: { slides: HeroSlidePublic[] }) {
               />
 
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <Button type="submit" className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+                <Button type="submit" variant="brand">
                   <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                   Buscar con Inteligencia Artificial
                 </Button>

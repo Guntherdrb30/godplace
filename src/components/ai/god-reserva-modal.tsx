@@ -50,7 +50,7 @@ export function GodReservaModal(props: {
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+            <Button type="submit" variant="brand">
               Iniciar con God
             </Button>
           </div>

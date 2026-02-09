@@ -84,7 +84,7 @@ export default async function RootConfiguracionPage() {
                 defaultValue={typeof cur === "string" ? cur : "USD"}
               />
             </div>
-            <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+            <Button variant="brand" type="submit">
               Guardar
             </Button>
           </form>

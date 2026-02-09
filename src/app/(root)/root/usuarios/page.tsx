@@ -102,7 +102,7 @@ export default async function RootUsuariosPage() {
                   <option value="ROOT">ROOT</option>
                 </select>
               </div>
-              <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+              <Button variant="brand" type="submit">
                 Crear usuario crítico
               </Button>
             </form>

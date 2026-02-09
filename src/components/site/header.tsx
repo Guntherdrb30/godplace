@@ -66,7 +66,7 @@ export async function SiteHeader() {
               <Button asChild variant="ghost">
                 <Link href="/login">Acceder</Link>
               </Button>
-              <Button asChild className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+              <Button asChild variant="brand">
                 <Link href="/registro">Crear cuenta</Link>
               </Button>
             </>

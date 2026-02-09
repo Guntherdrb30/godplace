@@ -68,7 +68,7 @@ export default async function SearchPage(props: {
             />
           </div>
           <div className="flex items-end">
-            <Button type="submit" className="w-full bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+            <Button type="submit" variant="brand" className="w-full">
               Filtrar
             </Button>
           </div>

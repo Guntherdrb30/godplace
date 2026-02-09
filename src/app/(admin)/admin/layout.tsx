@@ -44,7 +44,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/aliados">
                 Aliados{" "}
                 {pendingAllyContracts > 0 ? (
-                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-primary px-2 text-xs font-semibold text-white">
                     {pendingAllyContracts}
                   </span>
                 ) : null}
@@ -52,7 +52,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/propiedades">
                 Propiedades{" "}
                 {pendingProperties > 0 ? (
-                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-primary px-2 text-xs font-semibold text-white">
                     {pendingProperties}
                   </span>
                 ) : null}
@@ -60,7 +60,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/kyc">
                 KYC{" "}
                 {pendingKycProfiles > 0 ? (
-                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-primary px-2 text-xs font-semibold text-white">
                     {pendingKycProfiles}
                   </span>
                 ) : null}
@@ -77,7 +77,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/withdrawals">
                 Retiros{" "}
                 {pendingWithdrawals > 0 ? (
-                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-primary px-2 text-xs font-semibold text-white">
                     {pendingWithdrawals}
                   </span>
                 ) : null}
@@ -93,4 +93,3 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
     </div>
   );
 }
-

@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# local scratch
+/.tmp/
+
 # production
 /build
 

@@ -71,10 +71,7 @@ export function HeroCarousel(props: { slides: HeroSlidePublic[] }) {
                 ) : null}
                 {current.ctaText && current.ctaHref ? (
                   <div className="pt-2">
-                    <Button
-                      asChild
-                      className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90"
-                    >
+                    <Button asChild variant="brand">
                       <Link href={current.ctaHref}>{current.ctaText}</Link>
                     </Button>
                   </div>
@@ -130,4 +127,3 @@ export function HeroCarousel(props: { slides: HeroSlidePublic[] }) {
     </div>
   );
 }
-

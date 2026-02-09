@@ -200,7 +200,7 @@ export default async function AdminAliadosPage() {
 
                   <form action={aprobarAliado} className="flex justify-end gap-2">
                     <input type="hidden" name="allyProfileId" value={a.id} />
-                    <Button type="submit" className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]">
+                    <Button type="submit" variant="brand">
                       Aprobar aliado
                     </Button>
                   </form>

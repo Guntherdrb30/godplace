@@ -7,7 +7,8 @@
     /* Godplaces. (marca) */
     --marca-turquesa: 176 57% 45%; /* #32B5AD */
     --marca-petroleo: 188 100% 17%; /* #004B57 */
-    --marca-cta: 48 96% 53%; /* #FACC15 */
+    /* En la guia, el call-to-action usa el turquesa principal. */
+    --marca-cta: var(--marca-turquesa);
 
     /* Alias (tokens solicitados): brand.primary/secondary/accent */
     --brand-primary: var(--marca-turquesa);

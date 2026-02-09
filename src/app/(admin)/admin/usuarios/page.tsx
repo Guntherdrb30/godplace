@@ -117,7 +117,7 @@ export default async function AdminUsuariosPage() {
                         <Label className="text-xs text-muted-foreground">Nueva contraseña</Label>
                         <div className="flex gap-2">
                           <Input name="newPassword" type="text" minLength={8} placeholder="Mínimo 8" />
-                          <Button type="submit" size="sm" className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]">
+                          <Button type="submit" size="sm" variant="brand">
                             Reset
                           </Button>
                         </div>

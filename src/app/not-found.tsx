@@ -11,7 +11,7 @@ export default function NotFound() {
           La ruta que intentas abrir no existe.
         </p>
         <div className="mt-6 flex gap-3">
-          <Button asChild className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]">
+          <Button asChild variant="brand">
             <Link href="/">Ir al inicio</Link>
           </Button>
           <Button asChild variant="outline">

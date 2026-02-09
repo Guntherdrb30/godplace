@@ -142,7 +142,7 @@ export function BookingWidget(props: {
 
         <Button
           type="button"
-          className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90"
+          variant="brand"
           onClick={reservar}
           disabled={loading}
         >

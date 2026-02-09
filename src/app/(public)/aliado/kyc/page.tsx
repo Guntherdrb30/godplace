@@ -227,7 +227,7 @@ export default async function AliadoKycPage() {
               </div>
 
               <div className="sm:col-span-2 flex justify-end">
-                <Button type="submit" className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+                <Button type="submit" variant="brand">
                   Guardar datos personales
                 </Button>
               </div>
@@ -267,7 +267,7 @@ export default async function AliadoKycPage() {
                 <Input id="bankAccountHolderName" name="bankAccountHolderName" defaultValue={ally.bankAccountHolderName || ""} placeholder="Nombre del titular" required />
               </div>
               <div className="sm:col-span-2 flex justify-end">
-                <Button type="submit" className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90">
+                <Button type="submit" variant="brand">
                   Guardar datos bancarios
                 </Button>
               </div>

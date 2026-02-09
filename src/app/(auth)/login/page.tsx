@@ -46,7 +46,7 @@ export default async function LoginPage(props: {
                 <Label htmlFor="password">ContraseÃ±a</Label>
                 <PasswordInput id="password" name="password" autoComplete="current-password" required />
               </div>
-              <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+              <Button variant="brand" type="submit">
                 Entrar
               </Button>
             </form>
@@ -63,4 +63,3 @@ export default async function LoginPage(props: {
     </Container>
   );
 }
-

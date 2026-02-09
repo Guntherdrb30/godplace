@@ -194,7 +194,7 @@ export default async function AdminPropiedadEditPage(props: { params: Promise<{ 
                   <Input id="pricePerNightCents" name="pricePerNightCents" type="number" min={1} defaultValue={p.pricePerNightCents} />
                 </div>
               </div>
-              <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
+              <Button variant="brand" type="submit">
                 Guardar cambios
               </Button>
             </form>
@@ -217,7 +217,7 @@ export default async function AdminPropiedadEditPage(props: { params: Promise<{ 
                 <Textarea id="notasAdmin" name="notasAdmin" defaultValue={p.notasAdmin || ""} rows={3} />
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button name="status" value="PUBLISHED" type="submit" className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]">
+                <Button name="status" value="PUBLISHED" type="submit" variant="brand">
                   Verificar y publicar
                 </Button>
                 <Button name="status" value="REJECTED" type="submit" variant="outline">

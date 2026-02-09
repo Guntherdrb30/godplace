@@ -195,7 +195,7 @@ export default async function AliadoPropiedadesPage() {
                 </div>
               </div>
 
-              <Button className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" type="submit" disabled={!approved}>
+              <Button variant="brand" type="submit" disabled={!approved}>
                 Crear borrador
               </Button>
               <p className="text-xs text-muted-foreground">

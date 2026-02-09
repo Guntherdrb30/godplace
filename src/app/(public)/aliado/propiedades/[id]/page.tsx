@@ -275,7 +275,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
                 </div>
               </div>
 
-              <Button className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" type="submit">
+              <Button variant="brand" type="submit">
                 Guardar
               </Button>
             </form>
@@ -300,7 +300,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
             {canSubmit ? (
               <form action={enviarARevision} className="flex justify-end">
                 <input type="hidden" name="id" value={p.id} />
-                <Button className="bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" type="submit">
+                <Button variant="brand" type="submit">
                   Enviar a revisiÃ³n
                 </Button>
               </form>

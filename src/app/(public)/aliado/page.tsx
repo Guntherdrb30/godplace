@@ -71,7 +71,7 @@ export default function AliadoPage() {
               <li>Documento de propiedad o poder</li>
             </ul>
             <form action={iniciarProceso}>
-              <Button className="mt-4 bg-brand-accent text-brand-secondary hover:bg-brand-accent/90" type="submit">
+              <Button variant="brand" className="mt-4" type="submit">
                 Iniciar proceso
               </Button>
             </form>
