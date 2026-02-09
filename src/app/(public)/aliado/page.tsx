@@ -45,7 +45,7 @@ async function iniciarProceso() {
     entidadId: ally.id,
   });
 
-  redirect("/aliado/kyc");
+  redirect("/aliado/contrato");
 }
 
 export default function AliadoPage() {

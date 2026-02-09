@@ -50,7 +50,7 @@ export default async function AliadoBilleteraPage() {
 
   const ally = await prisma.allyProfile.findUnique({
     where: { id: user.allyProfileId },
-    include: { user: true },
+    include: { user: true, contract: true },
   });
   if (!ally) redirect("/aliado");
 
@@ -78,7 +78,9 @@ export default async function AliadoBilleteraPage() {
   const accountHolderName = ally.bankAccountHolderName?.trim() || "";
   const holderId = ally.bankHolderId?.trim() || "";
   const bankOk = !!bankName && bankAccountLast4.length >= 4 && !!accountHolderName && !!holderId;
-  const bankMasked = bankAccountLast4 ? `****${bankAccountLast4.slice(-4)}` : "—";
+  const bankMasked = bankAccountLast4 ? `****${bankAccountLast4.slice(-4)}` : "â€”";
+
+  const fullyApproved = ally.status === "KYC_APPROVED" && ally.contract?.status === "APPROVED";
 
   return (
     <Container className="py-12">
@@ -86,29 +88,33 @@ export default async function AliadoBilleteraPage() {
         <div>
           <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Billetera</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Tus ganancias como aliado se acumulan aquí. Retiros mínimos de $100. Operado por Trends172Tech.com.
+            Tus ganancias como aliado se acumulan aquÃ­. Retiros mÃ­nimos de $100. Operado por Trends172Tech.com.
           </p>
         </div>
         <AllyWithdrawDialog
-          disabled={!bankOk || ally.status !== "KYC_APPROVED"}
-          bankName={bankName || "—"}
+          disabled={!bankOk || !fullyApproved}
+          bankName={bankName || "â€”"}
           bankAccountMasked={bankMasked}
-          accountHolderName={accountHolderName || "—"}
-          holderId={holderId || "—"}
+          accountHolderName={accountHolderName || "â€”"}
+          holderId={holderId || "â€”"}
         />
       </div>
 
-      {ally.status !== "KYC_APPROVED" ? (
+      {!fullyApproved ? (
         <div className="mt-6 rounded-2xl border bg-white/70 p-5 text-sm text-muted-foreground">
-          Tu perfil aún no está aprobado. Completa tu KYC en{" "}
+          Tu cuenta de aliado aÃºn no estÃ¡ aprobada. Completa tu KYC en{" "}
           <Link className="underline" href="/aliado/kyc">
             /aliado/kyc
           </Link>{" "}
-          y espera la revisión.
+          y sube tu contrato firmado en{" "}
+          <Link className="underline" href="/aliado/contrato">
+            /aliado/contrato
+          </Link>{" "}
+          para que podamos revisarlo.
         </div>
       ) : !bankOk ? (
         <div className="mt-6 rounded-2xl border bg-white/70 p-5 text-sm text-muted-foreground">
-          Faltan datos bancarios en tu perfil. Completa tu información en{" "}
+          Faltan datos bancarios en tu perfil. Completa tu informaciÃ³n en{" "}
           <Link className="underline" href="/aliado/kyc">
             /aliado/kyc
           </Link>{" "}
@@ -138,12 +144,12 @@ export default async function AliadoBilleteraPage() {
             <CardTitle>Cuenta registrada</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            <div className="font-medium text-foreground">{bankName || "—"}</div>
+            <div className="font-medium text-foreground">{bankName || "â€”"}</div>
             <div>{bankMasked}</div>
             <div className="mt-2">
-              <span className="font-medium text-foreground">{accountHolderName || "—"}</span>
+              <span className="font-medium text-foreground">{accountHolderName || "â€”"}</span>
             </div>
-            <div>{holderId || "—"}</div>
+            <div>{holderId || "â€”"}</div>
           </CardContent>
         </Card>
       </div>
@@ -155,7 +161,7 @@ export default async function AliadoBilleteraPage() {
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {txs.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Aún no hay movimientos.</div>
+              <div className="text-sm text-muted-foreground">AÃºn no hay movimientos.</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -177,7 +183,7 @@ export default async function AliadoBilleteraPage() {
                         {formatMoney(t.amountCents, t.currency)}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {t.referenceId ? `${t.referenceType || "REF"}: ${t.referenceId.slice(0, 10)}…` : t.note || "—"}
+                        {t.referenceId ? `${t.referenceType || "REF"}: ${t.referenceId.slice(0, 10)}â€¦` : t.note || "â€”"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -193,7 +199,7 @@ export default async function AliadoBilleteraPage() {
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {withdrawals.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Aún no has solicitado retiros.</div>
+              <div className="text-sm text-muted-foreground">AÃºn no has solicitado retiros.</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -215,16 +221,14 @@ export default async function AliadoBilleteraPage() {
                       <TableCell>
                         <Badge variant={badgeVariantForStatus(w.status)}>{labelStatus(w.status)}</Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {w.paymentReference || "—"}
-                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{w.paymentReference || "â€”"}</TableCell>
                       <TableCell>
                         {w.receiptUrl ? (
                           <a className="underline" href={w.receiptUrl} target="_blank" rel="noreferrer">
                             Ver
                           </a>
                         ) : (
-                          "—"
+                          "â€”"
                         )}
                       </TableCell>
                     </TableRow>

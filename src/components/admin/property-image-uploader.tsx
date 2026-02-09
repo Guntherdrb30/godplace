@@ -101,7 +101,7 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
           id="img"
           type="file"
           accept="image/*"
-          disabled={subiendo}
+          disabled={subiendo || images.length >= 6}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) void subir(file);
@@ -109,7 +109,7 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
           }}
         />
         <p className="text-xs text-muted-foreground">
-          Se sube a Vercel Blob y se guarda <code>url</code> + <code>pathname</code>.
+          MÃ¡ximo 6 imÃ¡genes. Se sube a Vercel Blob y se guarda <code>url</code> + <code>pathname</code>.
         </p>
       </div>
 
@@ -143,4 +143,3 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
     </div>
   );
 }
-

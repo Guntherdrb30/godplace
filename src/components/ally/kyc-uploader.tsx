@@ -135,6 +135,7 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
             <Input
               id="archivo"
               type="file"
+              accept="application/pdf,image/*"
               disabled={subiendo}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -196,4 +197,3 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
     </div>
   );
 }
-

@@ -7,10 +7,26 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
   await requireRole(["ADMIN", "ROOT"]);
 
   let pendingWithdrawals = 0;
+  let pendingProperties = 0;
+  let pendingAllyContracts = 0;
+  let pendingKycProfiles = 0;
+
   try {
-    pendingWithdrawals = await prisma.withdrawalRequest.count({ where: { status: "PENDING" } });
+    const [w, p, c, k] = await Promise.all([
+      prisma.withdrawalRequest.count({ where: { status: "PENDING" } }),
+      prisma.property.count({ where: { status: "PENDING_APPROVAL" } }),
+      prisma.allyContract.count({ where: { status: "PENDING" } }),
+      prisma.allyProfile.count({ where: { status: "PENDING_KYC" } }),
+    ]);
+    pendingWithdrawals = w;
+    pendingProperties = p;
+    pendingAllyContracts = c;
+    pendingKycProfiles = k;
   } catch {
     pendingWithdrawals = 0;
+    pendingProperties = 0;
+    pendingAllyContracts = 0;
+    pendingKycProfiles = 0;
   }
 
   return (
@@ -25,11 +41,29 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
               <Link className="text-muted-foreground hover:text-foreground" href="/admin">
                 Resumen
               </Link>
+              <Link className="text-muted-foreground hover:text-foreground" href="/admin/aliados">
+                Aliados{" "}
+                {pendingAllyContracts > 0 ? (
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                    {pendingAllyContracts}
+                  </span>
+                ) : null}
+              </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/propiedades">
-                Propiedades
+                Propiedades{" "}
+                {pendingProperties > 0 ? (
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                    {pendingProperties}
+                  </span>
+                ) : null}
               </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/kyc">
-                KYC
+                KYC{" "}
+                {pendingKycProfiles > 0 ? (
+                  <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-accent px-2 text-xs font-semibold text-brand-secondary">
+                    {pendingKycProfiles}
+                  </span>
+                ) : null}
               </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/admin/usuarios">
                 Usuarios
@@ -59,3 +93,4 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
     </div>
   );
 }
+

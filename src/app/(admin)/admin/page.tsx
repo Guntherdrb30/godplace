@@ -8,17 +8,19 @@ export const dynamic = "force-dynamic";
 export const metadata = buildMetadata({ title: "Admin", path: "/admin" });
 
 export default async function AdminPage() {
-  const [propsCount, bookingsCount, aliadosPendientes] = await Promise.all([
+  const [propsCount, bookingsCount, kycPendientes, propertiesPendientes, aliadosPendientes] = await Promise.all([
     prisma.property.count(),
     prisma.booking.count(),
     prisma.allyProfile.count({ where: { status: "PENDING_KYC" } }),
+    prisma.property.count({ where: { status: "PENDING_APPROVAL" } }),
+    prisma.allyContract.count({ where: { status: "PENDING" } }),
   ]);
 
   return (
     <Container>
       <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Resumen</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Operación de Godplaces. (ADMIN/ROOT). Acciones registradas en audit_logs.
+        OperaciÃ³n de Godplaces. (ADMIN/ROOT). Acciones registradas en audit_logs.
       </p>
 
       <div className="mt-8 grid gap-5 md:grid-cols-3">
@@ -26,27 +28,34 @@ export default async function AdminPage() {
           <CardHeader>
             <CardTitle>Propiedades</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-semibold text-marca-petroleo">
-            {propsCount}
-          </CardContent>
+          <CardContent className="text-3xl font-semibold text-marca-petroleo">{propsCount}</CardContent>
         </Card>
         <Card className="rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
             <CardTitle>Reservas</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-semibold text-marca-petroleo">
-            {bookingsCount}
-          </CardContent>
+          <CardContent className="text-3xl font-semibold text-marca-petroleo">{bookingsCount}</CardContent>
         </Card>
         <Card className="rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
             <CardTitle>KYC pendientes</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-semibold text-marca-petroleo">
-            {aliadosPendientes}
-          </CardContent>
+          <CardContent className="text-3xl font-semibold text-marca-petroleo">{kycPendientes}</CardContent>
+        </Card>
+        <Card className="rounded-3xl bg-white/85 shadow-suave">
+          <CardHeader>
+            <CardTitle>Propiedades en revisiÃ³n</CardTitle>
+          </CardHeader>
+          <CardContent className="text-3xl font-semibold text-marca-petroleo">{propertiesPendientes}</CardContent>
+        </Card>
+        <Card className="rounded-3xl bg-white/85 shadow-suave">
+          <CardHeader>
+            <CardTitle>Aliados (contratos)</CardTitle>
+          </CardHeader>
+          <CardContent className="text-3xl font-semibold text-marca-petroleo">{aliadosPendientes}</CardContent>
         </Card>
       </div>
     </Container>
   );
 }
+

@@ -7,7 +7,7 @@ import { firmarRbacToken } from "@/lib/auth/rbac-token";
 import { setCookieRbac } from "@/lib/auth/rbac-cookie";
 
 const schema = z.object({
-  email: z.string().email(),
+  identifier: z.string().min(1),
   password: z.string().min(1),
 });
 
@@ -20,20 +20,24 @@ function redirectConError(req: Request, msg: string) {
 export async function POST(req: Request) {
   const form = await req.formData();
   const parsed = schema.safeParse({
-    email: String(form.get("email") || "").toLowerCase().trim(),
+    identifier: String(form.get("identifier") || "").toLowerCase().trim(),
     password: String(form.get("password") || ""),
   });
-  if (!parsed.success) return redirectConError(req, "Datos inválidos.");
+  if (!parsed.success) return redirectConError(req, "Datos invÃ¡lidos.");
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
+  const where = parsed.data.identifier.includes("@")
+    ? { email: parsed.data.identifier }
+    : { username: parsed.data.identifier };
+
+  const user = await prisma.user.findFirst({
+    where: where as { email?: string; username?: string },
     include: { roles: { include: { role: true } } },
   });
-  if (!user) return redirectConError(req, "Correo o contraseña incorrectos.");
-  if (user.status !== "ACTIVE") return redirectConError(req, "Tu cuenta está suspendida.");
+  if (!user) return redirectConError(req, "Correo/usuario o contraseÃ±a incorrectos.");
+  if (user.status !== "ACTIVE") return redirectConError(req, "Tu cuenta estÃ¡ suspendida.");
 
   const ok = await verifyPassword(parsed.data.password, user.passwordHash);
-  if (!ok) return redirectConError(req, "Correo o contraseña incorrectos.");
+  if (!ok) return redirectConError(req, "Correo/usuario o contraseÃ±a incorrectos.");
 
   const roles = user.roles.map((ur) => ur.role.code);
   const { token, expiresAt } = await crearSesion(user.id);

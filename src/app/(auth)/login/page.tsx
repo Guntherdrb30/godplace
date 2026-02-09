@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { PasswordInput } from "@/components/auth/password-input";
 
 export const metadata = buildMetadata({
   title: "Acceder",
@@ -26,7 +27,7 @@ export default async function LoginPage(props: {
               Acceder
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Ingresa con tu correo y contraseña.
+              Ingresa con tu correo o usuario y contraseÃ±a.
             </p>
           </CardHeader>
           <CardContent>
@@ -38,18 +39,12 @@ export default async function LoginPage(props: {
 
             <form action="/api/auth/login" method="post" className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Correo</Label>
-                <Input id="email" name="email" type="email" autoComplete="email" required />
+                <Label htmlFor="identifier">Correo o usuario</Label>
+                <Input id="identifier" name="identifier" type="text" autoComplete="username" required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
+                <Label htmlFor="password">ContraseÃ±a</Label>
+                <PasswordInput id="password" name="password" autoComplete="current-password" required />
               </div>
               <Button className="bg-marca-cta text-marca-petroleo hover:bg-[#f2c70d]" type="submit">
                 Entrar
@@ -57,7 +52,7 @@ export default async function LoginPage(props: {
             </form>
 
             <p className="mt-5 text-sm text-muted-foreground">
-              ¿No tienes cuenta?{" "}
+              Â¿No tienes cuenta?{" "}
               <Link className="text-foreground underline" href="/registro">
                 Crear cuenta
               </Link>
@@ -68,3 +63,4 @@ export default async function LoginPage(props: {
     </Container>
   );
 }
+

@@ -41,6 +41,11 @@ enum PropertyStatus {
   REJECTED
 }
 
+enum PropertyOperationType {
+  RENT
+  SALE
+}
+
 enum BookingStatus {
   DRAFT
   CONFIRMED
@@ -72,6 +77,7 @@ enum WithdrawalStatus {
 model User {
   id           String      @id @default(cuid())
   email        String      @unique
+  username     String?     @unique
   passwordHash String
   nombre       String?
   status       UserStatus  @default(ACTIVE)
@@ -129,6 +135,20 @@ model AllyProfile {
   isInternal Boolean    @default(false)
   notasAdmin String?
 
+  // Datos personales (KYC / onboarding).
+  firstName             String?
+  lastName              String?
+  dateOfBirth           DateTime?
+  sex                   String? // "M" | "F" | "O"
+  phone                 String?
+  contactEmail          String?
+  isCompany             Boolean  @default(false)
+  companyName           String?
+  rifNumber             String?
+  termsAcceptedAt       DateTime?
+  termsVersion          String?
+  onboardingSubmittedAt DateTime?
+
   // Datos bancarios del aliado (MVP).
   // Nota: No guardamos la cuenta completa por seguridad; solo últimos 4.
   bankName              String?
@@ -142,6 +162,7 @@ model AllyProfile {
   user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   wallet     AllyWallet?
   kycDocs    KycDocument[]
+  contract   AllyContract?
   properties Property[]
   payouts    Payout[]
   withdrawals WithdrawalRequest[]
@@ -235,6 +256,21 @@ model HeroSlide {
   @@index([orden])
 }
 
+model AllyContract {
+  id            String    @id @default(cuid())
+  allyProfileId String    @unique
+  status        KycStatus @default(PENDING)
+  url           String
+  pathname      String
+  notasAdmin    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  allyProfile AllyProfile @relation(fields: [allyProfileId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
 model KycDocument {
   id           String          @id @default(cuid())
   allyProfileId String
@@ -258,11 +294,20 @@ model Property {
   allyProfileId String
   status        PropertyStatus @default(DRAFT)
 
+  operationType PropertyOperationType @default(RENT)
+
   titulo        String
   descripcion   String
   ciudad        String
   estadoRegion  String
   direccion     String?
+  avenida       String?
+  calle         String?
+  urbanizacion  String?
+  nivelPlanta   String?
+
+  ownershipContractUrl      String?
+  ownershipContractPathname String?
 
   huespedesMax  Int
   habitaciones  Int @default(1)

@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
 
 const metaSchema = z.object({
-  folder: z.enum(["properties", "kyc", "site"]),
+  folder: z.enum(["properties", "property_contracts", "kyc", "ally_contracts", "site"]),
   entityId: z.string().min(1),
 });
 
@@ -29,8 +29,21 @@ export async function POST(req: Request) {
     !!user.allyProfileId &&
     meta.data.entityId === user.allyProfileId;
 
+  const isAliadoContract =
+    !!user &&
+    user.roles.includes("ALIADO") &&
+    meta.data.folder === "ally_contracts" &&
+    !!user.allyProfileId &&
+    meta.data.entityId === user.allyProfileId;
+
   let isAliadoProperty = false;
-  if (!isStaff && !!user && user.roles.includes("ALIADO") && meta.data.folder === "properties" && !!user.allyProfileId) {
+  if (
+    !isStaff &&
+    !!user &&
+    user.roles.includes("ALIADO") &&
+    (meta.data.folder === "properties" || meta.data.folder === "property_contracts") &&
+    !!user.allyProfileId
+  ) {
     const prop = await prisma.property.findUnique({
       where: { id: meta.data.entityId },
       select: { allyProfileId: true },
@@ -39,12 +52,34 @@ export async function POST(req: Request) {
   }
 
   // `site`: solo ADMIN/ROOT.
-  if (!isStaff && !isAliadoKyc && !isAliadoProperty) {
+  if (!isStaff && !isAliadoKyc && !isAliadoContract && !isAliadoProperty) {
     return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
   }
 
   if (!(file instanceof File)) {
     return NextResponse.json({ ok: false, message: "Falta archivo." }, { status: 400 });
+  }
+
+  const maxBytes = 15 * 1024 * 1024; // 15MB
+  if (typeof file.size === "number" && file.size > maxBytes) {
+    return NextResponse.json({ ok: false, message: "Archivo demasiado grande (mÃ¡x. 15MB)." }, { status: 400 });
+  }
+
+  const ct = (file.type || "").toLowerCase();
+  const isImage = ct.startsWith("image/");
+  const isPdf = ct === "application/pdf";
+  const folderKey = meta.data.folder;
+  const needsImageOnly = folderKey === "properties" || folderKey === "site";
+  const allowsPdfOrImage =
+    folderKey === "kyc" || folderKey === "ally_contracts" || folderKey === "property_contracts";
+
+  if (ct) {
+    if (needsImageOnly && !isImage) {
+      return NextResponse.json({ ok: false, message: "Tipo de archivo no permitido. Debe ser imagen." }, { status: 400 });
+    }
+    if (allowsPdfOrImage && !(isImage || isPdf)) {
+      return NextResponse.json({ ok: false, message: "Tipo de archivo no permitido. Usa PDF o imagen." }, { status: 400 });
+    }
   }
 
   const safeName = (file.name || "archivo").replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -63,4 +98,3 @@ export async function POST(req: Request) {
     contentType: res.contentType,
   });
 }
-

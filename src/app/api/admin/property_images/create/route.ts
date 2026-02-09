@@ -36,6 +36,9 @@ export async function POST(req: Request) {
   const ordenActual = await prisma.propertyImage.count({
     where: { propertyId: parsed.data.propertyId },
   });
+  if (ordenActual >= 6) {
+    return NextResponse.json({ ok: false, message: "MÃ¡ximo 6 imÃ¡genes por propiedad." }, { status: 400 });
+  }
 
   const img = await prisma.propertyImage.create({
     data: {

@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
-  const p = await prisma.property.findUnique({
-    where: { id },
+  const p = await prisma.property.findFirst({
+    where: { id, status: "PUBLISHED" },
     select: { titulo: true, descripcion: true },
   });
   if (!p) return buildMetadata({ title: "Propiedad" });

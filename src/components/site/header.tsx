@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Container } from "@/components/site/container";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { Button } from "@/components/ui/button";
+import { prisma } from "@/lib/prisma";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,18 +14,37 @@ import {
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
+  const allyAccess =
+    user?.allyProfileId && user.roles.includes("ALIADO")
+      ? await prisma.allyProfile
+          .findUnique({
+            where: { id: user.allyProfileId },
+            select: { status: true, contract: { select: { status: true } } },
+          })
+          .catch(() => null)
+      : null;
+  const allyApproved =
+    !!allyAccess &&
+    allyAccess.status === "KYC_APPROVED" &&
+    allyAccess.contract?.status === "APPROVED";
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/70 backdrop-blur">
       <Container className="flex h-16 items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo-godplaces-placeholder.svg" alt="Logo de Godplaces." width={34} height={34} priority />
+            <Image
+              src="/logo-godplaces-placeholder.svg"
+              alt="Logo de Godplaces."
+              width={34}
+              height={34}
+              priority
+            />
             <span className="font-[var(--font-display)] text-lg tracking-tight text-brand-secondary">
               Godplaces<span className="text-brand-primary">.</span>
             </span>
           </Link>
-          <nav aria-label="Navegación principal" className="hidden items-center gap-6 text-sm sm:flex">
+          <nav aria-label="NavegaciÃ³n principal" className="hidden items-center gap-6 text-sm sm:flex">
             <Link className="text-muted-foreground hover:text-foreground" href="/search">
               Explorar
             </Link>
@@ -32,10 +52,10 @@ export async function SiteHeader() {
               Ser aliado
             </Link>
             <Link className="text-muted-foreground hover:text-foreground" href="/#como-funciona">
-              Cómo funciona
+              CÃ³mo funciona
             </Link>
             <Link className="text-muted-foreground hover:text-foreground" href="/#seguridad">
-              Verificación
+              VerificaciÃ³n
             </Link>
           </nav>
         </div>
@@ -67,19 +87,26 @@ export async function SiteHeader() {
                 {user.roles.includes("ALIADO") ? (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/aliado/kyc">Mi verificación (KYC)</Link>
+                      <Link href="/aliado/contrato">Mi contrato</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/aliado/propiedades">Mis propiedades</Link>
+                      <Link href="/aliado/kyc">Mi verificaciÃ³n (KYC)</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/aliado/billetera">Mi billetera</Link>
-                    </DropdownMenuItem>
+                    {allyApproved ? (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href="/aliado/propiedades">Mis propiedades</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/aliado/billetera">Mi billetera</Link>
+                        </DropdownMenuItem>
+                      </>
+                    ) : null}
                   </>
                 ) : null}
                 {user.roles.includes("ADMIN") || user.roles.includes("ROOT") ? (
                   <DropdownMenuItem asChild>
-                    <Link href="/admin">Administración</Link>
+                    <Link href="/admin">AdministraciÃ³n</Link>
                   </DropdownMenuItem>
                 ) : null}
                 {user.roles.includes("ROOT") ? (
@@ -90,7 +117,7 @@ export async function SiteHeader() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <form action="/api/auth/logout" method="post">
-                    <button className="w-full text-left">Cerrar sesión</button>
+                    <button className="w-full text-left">Cerrar sesiÃ³n</button>
                   </form>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -101,4 +128,3 @@ export async function SiteHeader() {
     </header>
   );
 }
-
