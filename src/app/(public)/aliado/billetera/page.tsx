@@ -78,7 +78,7 @@ export default async function AliadoBilleteraPage() {
   const accountHolderName = ally.bankAccountHolderName?.trim() || "";
   const holderId = ally.bankHolderId?.trim() || "";
   const bankOk = !!bankName && bankAccountLast4.length >= 4 && !!accountHolderName && !!holderId;
-  const bankMasked = bankAccountLast4 ? `****${bankAccountLast4.slice(-4)}` : "â€”";
+  const bankMasked = bankAccountLast4 ? `****${bankAccountLast4.slice(-4)}` : "—";
 
   const fullyApproved = ally.status === "KYC_APPROVED" && ally.contract?.status === "APPROVED";
 
@@ -88,21 +88,21 @@ export default async function AliadoBilleteraPage() {
         <div>
           <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Billetera</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Tus ganancias como aliado se acumulan aquÃ­. Retiros mÃ­nimos de $100. Operado por Trends172Tech.com.
+            Tus ganancias como aliado se acumulan aquí. Retiros mínimos de $100. Operado por Trends172Tech.com.
           </p>
         </div>
         <AllyWithdrawDialog
           disabled={!bankOk || !fullyApproved}
-          bankName={bankName || "â€”"}
+          bankName={bankName || "—"}
           bankAccountMasked={bankMasked}
-          accountHolderName={accountHolderName || "â€”"}
-          holderId={holderId || "â€”"}
+          accountHolderName={accountHolderName || "—"}
+          holderId={holderId || "—"}
         />
       </div>
 
       {!fullyApproved ? (
         <div className="mt-6 rounded-2xl border bg-white/70 p-5 text-sm text-muted-foreground">
-          Tu cuenta de aliado aÃºn no estÃ¡ aprobada. Completa tu KYC en{" "}
+          Tu cuenta de aliado aún no está aprobada. Completa tu KYC en{" "}
           <Link className="underline" href="/aliado/kyc">
             /aliado/kyc
           </Link>{" "}
@@ -114,7 +114,7 @@ export default async function AliadoBilleteraPage() {
         </div>
       ) : !bankOk ? (
         <div className="mt-6 rounded-2xl border bg-white/70 p-5 text-sm text-muted-foreground">
-          Faltan datos bancarios en tu perfil. Completa tu informaciÃ³n en{" "}
+          Faltan datos bancarios en tu perfil. Completa tu información en{" "}
           <Link className="underline" href="/aliado/kyc">
             /aliado/kyc
           </Link>{" "}
@@ -144,12 +144,12 @@ export default async function AliadoBilleteraPage() {
             <CardTitle>Cuenta registrada</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            <div className="font-medium text-foreground">{bankName || "â€”"}</div>
+            <div className="font-medium text-foreground">{bankName || "—"}</div>
             <div>{bankMasked}</div>
             <div className="mt-2">
-              <span className="font-medium text-foreground">{accountHolderName || "â€”"}</span>
+              <span className="font-medium text-foreground">{accountHolderName || "—"}</span>
             </div>
-            <div>{holderId || "â€”"}</div>
+            <div>{holderId || "—"}</div>
           </CardContent>
         </Card>
       </div>
@@ -161,7 +161,7 @@ export default async function AliadoBilleteraPage() {
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {txs.length === 0 ? (
-              <div className="text-sm text-muted-foreground">AÃºn no hay movimientos.</div>
+              <div className="text-sm text-muted-foreground">Aún no hay movimientos.</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -183,7 +183,7 @@ export default async function AliadoBilleteraPage() {
                         {formatMoney(t.amountCents, t.currency)}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {t.referenceId ? `${t.referenceType || "REF"}: ${t.referenceId.slice(0, 10)}â€¦` : t.note || "â€”"}
+                        {t.referenceId ? `${t.referenceType || "REF"}: ${t.referenceId.slice(0, 10)}…` : t.note || "—"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -199,7 +199,7 @@ export default async function AliadoBilleteraPage() {
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {withdrawals.length === 0 ? (
-              <div className="text-sm text-muted-foreground">AÃºn no has solicitado retiros.</div>
+              <div className="text-sm text-muted-foreground">Aún no has solicitado retiros.</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -221,14 +221,14 @@ export default async function AliadoBilleteraPage() {
                       <TableCell>
                         <Badge variant={badgeVariantForStatus(w.status)}>{labelStatus(w.status)}</Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{w.paymentReference || "â€”"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{w.paymentReference || "—"}</TableCell>
                       <TableCell>
                         {w.receiptUrl ? (
                           <a className="underline" href={w.receiptUrl} target="_blank" rel="noreferrer">
                             Ver
                           </a>
                         ) : (
-                          "â€”"
+                          "—"
                         )}
                       </TableCell>
                     </TableRow>

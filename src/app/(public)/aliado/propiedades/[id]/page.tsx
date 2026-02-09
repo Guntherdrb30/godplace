@@ -47,7 +47,7 @@ async function actualizar(formData: FormData) {
   if (!user.allyProfileId) throw new Error("No tienes perfil de aliado.");
 
   const ok = await isAllyFullyApproved(user.allyProfileId);
-  if (!ok) throw new Error("Tu cuenta de aliado no estÃ¡ aprobada.");
+  if (!ok) throw new Error("Tu cuenta de aliado no está aprobada.");
 
   const id = String(formData.get("id") || "");
   const titulo = String(formData.get("titulo") || "").trim();
@@ -69,8 +69,8 @@ async function actualizar(formData: FormData) {
   if (!prop || prop.allyProfileId !== user.allyProfileId) throw new Error("No autorizado.");
 
   if (!titulo || !descripcion || !ciudad || !estadoRegion || !urbanizacion || !calle) throw new Error("Faltan campos.");
-  if (!["RENT", "SALE"].includes(operationType)) throw new Error("OperaciÃ³n invÃ¡lida.");
-  if (price <= 0) throw new Error("Precio invÃ¡lido.");
+  if (!["RENT", "SALE"].includes(operationType)) throw new Error("Operación inválida.");
+  if (price <= 0) throw new Error("Precio inválido.");
 
   await prisma.property.update({
     where: { id },
@@ -107,7 +107,7 @@ async function enviarARevision(formData: FormData) {
   if (!user.allyProfileId) throw new Error("No tienes perfil de aliado.");
 
   const ok = await isAllyFullyApproved(user.allyProfileId);
-  if (!ok) throw new Error("Tu cuenta de aliado no estÃ¡ aprobada.");
+  if (!ok) throw new Error("Tu cuenta de aliado no está aprobada.");
 
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Falta id.");
@@ -119,19 +119,19 @@ async function enviarARevision(formData: FormData) {
   if (!p || p.allyProfileId !== user.allyProfileId) throw new Error("No autorizado.");
 
   if (!(p.status === "DRAFT" || p.status === "REJECTED")) {
-    throw new Error("Esta propiedad no puede enviarse a revisiÃ³n en su estado actual.");
+    throw new Error("Esta propiedad no puede enviarse a revisión en su estado actual.");
   }
 
   if (!p.ownershipContractUrl || !p.ownershipContractPathname) {
-    throw new Error("Debes subir el contrato de propiedad antes de enviar a revisiÃ³n.");
+    throw new Error("Debes subir el contrato de propiedad antes de enviar a revisión.");
   }
 
   const imagesCount = p.images.length;
   if (imagesCount < 1) throw new Error("Debes subir al menos 1 imagen.");
-  if (imagesCount > 6) throw new Error("MÃ¡ximo 6 imÃ¡genes.");
+  if (imagesCount > 6) throw new Error("Máximo 6 imágenes.");
 
   if (!p.titulo || !p.descripcion || !p.estadoRegion || !p.ciudad || !p.urbanizacion || !p.calle) {
-    throw new Error("Faltan datos de direcciÃ³n o contenido.");
+    throw new Error("Faltan datos de dirección o contenido.");
   }
 
   await prisma.property.update({
@@ -147,15 +147,15 @@ async function enviarARevision(formData: FormData) {
   });
 
   const to = p.allyProfile.user.email;
-  const subject = "Godplaces: tu propiedad estÃ¡ en revisiÃ³n";
+  const subject = "Godplaces: tu propiedad está en revisión";
   const text = [
     `Recibimos tu propiedad: ${p.titulo}`,
-    `Estado: En revisiÃ³n`,
+    `Estado: En revisión`,
     "",
-    "Nuestro equipo la revisarÃ¡ y te notificaremos cuando sea aprobada o si necesitamos ajustes.",
+    "Nuestro equipo la revisará y te notificaremos cuando sea aprobada o si necesitamos ajustes.",
   ].join("\n");
   await sendEmail({ to, subject, text }).catch((e) => {
-    console.warn("[EMAIL][WARN] FallÃ³ envÃ­o de email de revisiÃ³n de propiedad:", e);
+    console.warn("[EMAIL][WARN] Falló envío de email de revisión de propiedad:", e);
   });
 
   revalidatePath(`/aliado/propiedades/${id}`);
@@ -171,7 +171,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
     return (
       <Container className="py-12">
         <div className="rounded-2xl border bg-white/70 p-6 text-sm text-muted-foreground">
-          Tu cuenta de aliado no estÃ¡ aprobada. Completa tu proceso en{" "}
+          Tu cuenta de aliado no está aprobada. Completa tu proceso en{" "}
           <Link className="underline" href="/aliado/kyc">
             /aliado/kyc
           </Link>{" "}
@@ -198,7 +198,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
     <Container className="py-12">
       <div className="mb-6">
         <Link href="/aliado/propiedades" className="text-sm text-muted-foreground hover:text-foreground">
-          â† Volver a mis propiedades
+          ← Volver a mis propiedades
         </Link>
       </div>
 
@@ -212,16 +212,16 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
               <input type="hidden" name="id" value={p.id} />
 
               <div className="grid gap-2">
-                <Label htmlFor="titulo">TÃ­tulo</Label>
+                <Label htmlFor="titulo">Título</Label>
                 <Input id="titulo" name="titulo" defaultValue={p.titulo} required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea id="descripcion" name="descripcion" defaultValue={p.descripcion} rows={6} required />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="operationType">OperaciÃ³n</Label>
+                <Label htmlFor="operationType">Operación</Label>
                 <select
                   id="operationType"
                   name="operationType"
@@ -244,7 +244,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="urbanizacion">UrbanizaciÃ³n</Label>
+                  <Label htmlFor="urbanizacion">Urbanización</Label>
                   <Input id="urbanizacion" name="urbanizacion" defaultValue={p.urbanizacion || ""} required />
                 </div>
                 <div className="grid gap-2">
@@ -266,7 +266,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="huespedesMax">HuÃ©spedes mÃ¡x.</Label>
+                  <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
                   <Input id="huespedesMax" name="huespedesMax" type="number" min={1} defaultValue={p.huespedesMax} />
                 </div>
                 <div className="grid gap-2">
@@ -301,12 +301,12 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
               <form action={enviarARevision} className="flex justify-end">
                 <input type="hidden" name="id" value={p.id} />
                 <Button variant="brand" type="submit">
-                  Enviar a revisiÃ³n
+                  Enviar a revisión
                 </Button>
               </form>
             ) : (
               <div className="rounded-2xl border bg-white/70 p-4 text-sm text-muted-foreground">
-                Esta propiedad ya estÃ¡ en revisiÃ³n o publicada. Si fue rechazada, podrÃ¡s editar y reenviar.
+                Esta propiedad ya está en revisión o publicada. Si fue rechazada, podrás editar y reenviar.
               </div>
             )}
           </CardContent>
@@ -314,7 +314,7 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
 
         <Card className="rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
-            <CardTitle>ImÃ¡genes (mÃ¡ximo 6)</CardTitle>
+            <CardTitle>Imágenes (máximo 6)</CardTitle>
           </CardHeader>
           <CardContent>
             <PropertyImageUploader

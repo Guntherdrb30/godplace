@@ -20,7 +20,7 @@ export default async function AdminPage() {
     <Container>
       <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Resumen</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        OperaciÃ³n de Godplaces. (ADMIN/ROOT). Acciones registradas en audit_logs.
+        Operación de Godplaces. (ADMIN/ROOT). Acciones registradas en audit_logs.
       </p>
 
       <div className="mt-8 grid gap-5 md:grid-cols-3">
@@ -44,7 +44,7 @@ export default async function AdminPage() {
         </Card>
         <Card className="rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
-            <CardTitle>Propiedades en revisiÃ³n</CardTitle>
+            <CardTitle>Propiedades en revisión</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-semibold text-marca-petroleo">{propertiesPendientes}</CardContent>
         </Card>

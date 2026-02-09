@@ -42,7 +42,7 @@ export function PropertyContractUploader(props: {
       });
       const crData = await cr.json().catch(() => ({}));
       if (!cr.ok) {
-        toast("Se subiÃ³ a Blob pero no se pudo registrar en la base de datos.", {
+        toast("Se subió a Blob pero no se pudo registrar en la base de datos.", {
           description: crData?.message || "",
         });
         return;
@@ -65,7 +65,7 @@ export function PropertyContractUploader(props: {
   };
 
   const eliminar = async () => {
-    const ok = confirm("Â¿Eliminar el contrato de propiedad?");
+    const ok = confirm("¿Eliminar el contrato de propiedad?");
     if (!ok) return;
 
     const res = await fetch("/api/ally/property_contract/delete", {
@@ -109,12 +109,12 @@ export function PropertyContractUploader(props: {
             e.currentTarget.value = "";
           }}
         />
-        <p className="text-xs text-muted-foreground">PDF o imagen. Es requisito para enviar la propiedad a revisiÃ³n.</p>
+        <p className="text-xs text-muted-foreground">PDF o imagen. Es requisito para enviar la propiedad a revisión.</p>
       </div>
 
       {!url ? (
         <div className="rounded-2xl border bg-white/70 p-4 text-sm text-muted-foreground">
-          AÃºn no has subido el contrato de la propiedad.
+          Aún no has subido el contrato de la propiedad.
         </div>
       ) : (
         <div className="rounded-2xl border bg-white p-4">

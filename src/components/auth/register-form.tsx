@@ -15,8 +15,8 @@ export function RegisterForm() {
       <fieldset className="grid gap-3">
         <legend className="text-sm font-medium text-foreground">Tipo de cuenta</legend>
         <p className="text-xs text-muted-foreground">
-          Elige cÃ³mo quieres usar Godplaces. Si eliges <span className="font-medium text-foreground">Aliado</span>,
-          deberÃ¡s completar un proceso de verificaciÃ³n y firma de contrato. Crear el usuario no garantiza aprobaciÃ³n.
+          Elige cómo quieres usar Godplaces. Si eliges <span className="font-medium text-foreground">Aliado</span>,
+          deberás completar un proceso de verificación y firma de contrato. Crear el usuario no garantiza aprobación.
         </p>
 
         <div className="grid gap-3">
@@ -33,7 +33,7 @@ export function RegisterForm() {
               <div>
                 <div className="font-medium text-foreground">Cliente</div>
                 <div className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Explora y reserva propiedades publicadas en el catÃ¡logo.
+                  Explora y reserva propiedades publicadas en el catálogo.
                 </div>
               </div>
               <div className="mt-1 h-4 w-4 rounded-full border border-muted-foreground/40 bg-white peer-checked:border-brand-primary peer-checked:bg-brand-primary" />
@@ -52,7 +52,7 @@ export function RegisterForm() {
               <div>
                 <div className="font-medium text-foreground">Aliado</div>
                 <div className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Publica propiedades y genera ganancias. Requiere verificaciÃ³n (KYC) y aprobaciÃ³n manual.
+                  Publica propiedades y genera ganancias. Requiere verificación (KYC) y aprobación manual.
                 </div>
               </div>
               <div className="mt-1 h-4 w-4 rounded-full border border-muted-foreground/40 bg-white peer-checked:border-brand-primary peer-checked:bg-brand-primary" />
@@ -72,7 +72,7 @@ export function RegisterForm() {
           required={tipo === "ALIADO"}
         />
         <p className="text-xs text-muted-foreground">
-          Puedes iniciar sesiÃ³n con correo o usuario. (Obligatorio para aliados.)
+          Puedes iniciar sesión con correo o usuario. (Obligatorio para aliados.)
         </p>
       </div>
 
@@ -111,18 +111,18 @@ export function RegisterForm() {
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="telefono">TelÃ©fono de contacto</Label>
+          <Label htmlFor="telefono">Teléfono de contacto</Label>
           <Input id="telefono" name="telefono" type="tel" autoComplete="tel" required={tipo === "ALIADO"} placeholder="Ej: +58 412 123 4567" />
         </div>
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="password">ContraseÃ±a</Label>
+        <Label htmlFor="password">Contraseña</Label>
         <PasswordInput id="password" name="password" autoComplete="new-password" minLength={8} required />
-        <p className="text-xs text-muted-foreground">MÃ­nimo 8 caracteres.</p>
+        <p className="text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="passwordConfirm">Repetir contraseÃ±a</Label>
+        <Label htmlFor="passwordConfirm">Repetir contraseña</Label>
         <PasswordInput id="passwordConfirm" name="passwordConfirm" autoComplete="new-password" minLength={8} required />
       </div>
 
@@ -157,15 +157,15 @@ export function RegisterForm() {
             <div className="rounded-2xl border bg-white p-4">
               <div className="text-sm font-medium text-foreground">Documentos KYC (obligatorio)</div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Formatos: PDF o imagen. MÃ¡x. 15MB por archivo.
+                Formatos: PDF o imagen. Máx. 15MB por archivo.
               </p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="kycCedula">Foto/PDF de cÃ©dula</Label>
+                  <Label htmlFor="kycCedula">Foto/PDF de cédula</Label>
                   <Input id="kycCedula" name="kycCedula" type="file" accept="application/pdf,image/*" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="kycSelfieCedula">Selfie con cÃ©dula</Label>
+                  <Label htmlFor="kycSelfieCedula">Selfie con cédula</Label>
                   <Input id="kycSelfieCedula" name="kycSelfieCedula" type="file" accept="application/pdf,image/*" required />
                 </div>
 
@@ -185,7 +185,7 @@ export function RegisterForm() {
                 <a className="underline" href="/terminos" target="_blank" rel="noreferrer">
                   condiciones
                 </a>{" "}
-                y entiendo que crear el usuario no garantiza que serÃ© aprobado por Godplaces.
+                y entiendo que crear el usuario no garantiza que seré aprobado por Godplaces.
               </span>
             </label>
           </div>

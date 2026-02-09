@@ -72,7 +72,7 @@ export default async function AliadoContratoPage() {
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              Este texto es el mismo que se envÃ­a por correo. Puedes imprimirlo/firmarlo y luego subirlo firmado.
+              Este texto es el mismo que se envía por correo. Puedes imprimirlo/firmarlo y luego subirlo firmado.
             </p>
             <pre className="mt-4 whitespace-pre-wrap rounded-2xl border bg-white p-4 text-xs leading-5 text-muted-foreground">
 {contract.text}

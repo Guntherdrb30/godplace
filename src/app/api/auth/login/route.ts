@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       identifier: String(form.get("identifier") || "").toLowerCase().trim(),
       password: String(form.get("password") || ""),
     });
-    if (!parsed.success) return redirectConError(req, "Datos invalidos.");
+    if (!parsed.success) return redirectConError(req, "Datos inválidos.");
 
     const where = parsed.data.identifier.includes("@")
       ? { email: parsed.data.identifier }
@@ -34,11 +34,11 @@ export async function POST(req: Request) {
       where: where as { email?: string; username?: string },
       include: { roles: { include: { role: true } } },
     });
-    if (!user) return redirectConError(req, "Correo/usuario o contrasena incorrectos.");
-    if (user.status !== "ACTIVE") return redirectConError(req, "Tu cuenta esta suspendida.");
+    if (!user) return redirectConError(req, "Correo/usuario o contraseña incorrectos.");
+    if (user.status !== "ACTIVE") return redirectConError(req, "Tu cuenta está suspendida.");
 
     const ok = await verifyPassword(parsed.data.password, user.passwordHash);
-    if (!ok) return redirectConError(req, "Correo/usuario o contrasena incorrectos.");
+    if (!ok) return redirectConError(req, "Correo/usuario o contraseña incorrectos.");
 
     const roles = user.roles.map((ur) => ur.role.code);
     const { token, expiresAt } = await crearSesion(user.id);
@@ -52,10 +52,12 @@ export async function POST(req: Request) {
       console.warn("[auth/login] RBAC token skipped:", e);
     }
 
-    return NextResponse.redirect(new URL("/", req.url), { status: 303 });
+    const destino =
+      roles.includes("ROOT") || roles.includes("ADMIN") ? "/admin" : "/";
+
+    return NextResponse.redirect(new URL(destino, req.url), { status: 303 });
   } catch (e) {
     console.error("[auth/login] error:", e);
-    return redirectConError(req, "No se pudo iniciar sesion. Intenta de nuevo.");
+    return redirectConError(req, "No se pudo iniciar sesión. Intenta de nuevo.");
   }
 }
-

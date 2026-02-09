@@ -37,7 +37,7 @@ export function AdminPropertyContractUploader(props: {
       });
       const crData = await cr.json().catch(() => ({}));
       if (!cr.ok) {
-        toast("Se subiÃ³ a Blob pero no se pudo registrar en la base de datos.", {
+        toast("Se subió a Blob pero no se pudo registrar en la base de datos.", {
           description: crData?.message || "",
         });
         return;
@@ -60,7 +60,7 @@ export function AdminPropertyContractUploader(props: {
   };
 
   const eliminar = async () => {
-    const ok = confirm("Â¿Eliminar el contrato de propiedad?");
+    const ok = confirm("¿Eliminar el contrato de propiedad?");
     if (!ok) return;
 
     const res = await fetch("/api/admin/property_contract/delete", {

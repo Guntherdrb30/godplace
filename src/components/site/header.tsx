@@ -44,7 +44,7 @@ export async function SiteHeader() {
               Godplaces<span className="text-brand-primary">.</span>
             </span>
           </Link>
-          <nav aria-label="NavegaciÃ³n principal" className="hidden items-center gap-6 text-sm sm:flex">
+          <nav aria-label="Navegación principal" className="hidden items-center gap-6 text-sm sm:flex">
             <Link className="text-muted-foreground hover:text-foreground" href="/search">
               Explorar
             </Link>
@@ -52,10 +52,10 @@ export async function SiteHeader() {
               Ser aliado
             </Link>
             <Link className="text-muted-foreground hover:text-foreground" href="/#como-funciona">
-              CÃ³mo funciona
+              Cómo funciona
             </Link>
             <Link className="text-muted-foreground hover:text-foreground" href="/#seguridad">
-              VerificaciÃ³n
+              Verificación
             </Link>
           </nav>
         </div>
@@ -90,7 +90,7 @@ export async function SiteHeader() {
                       <Link href="/aliado/contrato">Mi contrato</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/aliado/kyc">Mi verificaciÃ³n (KYC)</Link>
+                      <Link href="/aliado/kyc">Mi verificación (KYC)</Link>
                     </DropdownMenuItem>
                     {allyApproved ? (
                       <>
@@ -106,7 +106,7 @@ export async function SiteHeader() {
                 ) : null}
                 {user.roles.includes("ADMIN") || user.roles.includes("ROOT") ? (
                   <DropdownMenuItem asChild>
-                    <Link href="/admin">AdministraciÃ³n</Link>
+                    <Link href="/admin">Administración</Link>
                   </DropdownMenuItem>
                 ) : null}
                 {user.roles.includes("ROOT") ? (
@@ -117,7 +117,7 @@ export async function SiteHeader() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <form action="/api/auth/logout" method="post">
-                    <button className="w-full text-left">Cerrar sesiÃ³n</button>
+                    <button className="w-full text-left">Cerrar sesión</button>
                   </form>
                 </DropdownMenuItem>
               </DropdownMenuContent>

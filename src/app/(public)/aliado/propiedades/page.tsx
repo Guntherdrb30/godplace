@@ -43,7 +43,7 @@ async function crearPropiedadAliado(formData: FormData) {
   if (!user.allyProfileId) throw new Error("No tienes perfil de aliado.");
 
   const ok = await isAllyFullyApproved(user.allyProfileId);
-  if (!ok) throw new Error("Tu cuenta de aliado no estÃ¡ aprobada todavÃ­a.");
+  if (!ok) throw new Error("Tu cuenta de aliado no está aprobada todavía.");
 
   const titulo = String(formData.get("titulo") || "").trim();
   const descripcion = String(formData.get("descripcion") || "").trim();
@@ -60,7 +60,7 @@ async function crearPropiedadAliado(formData: FormData) {
   if (!titulo || !descripcion || !ciudad || !estadoRegion || !urbanizacion || !calle) {
     throw new Error("Faltan campos obligatorios.");
   }
-  if (!["RENT", "SALE"].includes(operationType)) throw new Error("Tipo de operaciÃ³n invÃ¡lido.");
+  if (!["RENT", "SALE"].includes(operationType)) throw new Error("Tipo de operación inválido.");
   if (price <= 0) throw new Error("El precio debe ser mayor a 0 (en centavos).");
 
   const p = await prisma.property.create({
@@ -119,12 +119,12 @@ export default async function AliadoPropiedadesPage() {
     <Container className="py-12">
       <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Mis propiedades</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Crea y gestiona tus propiedades. La publicaciÃ³n requiere aprobaciÃ³n del operador.
+        Crea y gestiona tus propiedades. La publicación requiere aprobación del operador.
       </p>
 
       {!approved ? (
         <div className="mt-6 rounded-2xl border bg-white/70 p-5 text-sm text-muted-foreground">
-          Tu cuenta de aliado aÃºn no estÃ¡ aprobada. Completa tu proceso en{" "}
+          Tu cuenta de aliado aún no está aprobada. Completa tu proceso en{" "}
           <Link className="underline" href="/aliado/kyc">
             /aliado/kyc
           </Link>{" "}
@@ -144,16 +144,16 @@ export default async function AliadoPropiedadesPage() {
           <CardContent>
             <form action={crearPropiedadAliado} className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="titulo">TÃ­tulo</Label>
+                <Label htmlFor="titulo">Título</Label>
                 <Input id="titulo" name="titulo" required disabled={!approved} />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea id="descripcion" name="descripcion" rows={5} required disabled={!approved} />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="operationType">OperaciÃ³n</Label>
+                <Label htmlFor="operationType">Operación</Label>
                 <select id="operationType" name="operationType" className="h-10 rounded-md border bg-white px-3 text-sm" required disabled={!approved}>
                   <option value="RENT">Alquiler</option>
                   <option value="SALE">Venta</option>
@@ -164,7 +164,7 @@ export default async function AliadoPropiedadesPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="urbanizacion">UrbanizaciÃ³n</Label>
+                  <Label htmlFor="urbanizacion">Urbanización</Label>
                   <Input id="urbanizacion" name="urbanizacion" required disabled={!approved} />
                 </div>
                 <div className="grid gap-2">
@@ -186,7 +186,7 @@ export default async function AliadoPropiedadesPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="huespedesMax">HuÃ©spedes mÃ¡x.</Label>
+                  <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
                   <Input id="huespedesMax" name="huespedesMax" type="number" min={1} defaultValue={4} disabled={!approved} />
                 </div>
                 <div className="grid gap-2">
@@ -199,7 +199,7 @@ export default async function AliadoPropiedadesPage() {
                 Crear borrador
               </Button>
               <p className="text-xs text-muted-foreground">
-                Luego de crear el borrador, subirÃ¡s el contrato de propiedad y hasta 6 imÃ¡genes, y enviarÃ¡s a revisiÃ³n.
+                Luego de crear el borrador, subirás el contrato de propiedad y hasta 6 imágenes, y enviarás a revisión.
               </p>
             </form>
           </CardContent>
@@ -217,7 +217,7 @@ export default async function AliadoPropiedadesPage() {
                 <div key={p.id} className="rounded-2xl border bg-white p-4">
                   <div className="font-medium text-foreground">{p.titulo}</div>
                   <div className="mt-1 text-sm text-muted-foreground">
-                    {p.ciudad}, {p.estadoRegion} Â· Estado:{" "}
+                    {p.ciudad}, {p.estadoRegion} · Estado:{" "}
                     <span className="font-medium text-foreground">{labelPropertyStatus(p.status)}</span>
                   </div>
                   <div className="mt-3">

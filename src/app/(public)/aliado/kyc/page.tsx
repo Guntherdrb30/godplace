@@ -35,13 +35,13 @@ async function guardarDatosPersonales(formData: FormData) {
     throw new Error("Faltan datos personales obligatorios.");
   }
   if (!contactEmail.includes("@")) {
-    throw new Error("Email de contacto invÃ¡lido.");
+    throw new Error("Email de contacto inválido.");
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
-    throw new Error("Fecha de nacimiento invÃ¡lida.");
+    throw new Error("Fecha de nacimiento inválida.");
   }
   if (!["M", "F", "O"].includes(sex)) {
-    throw new Error("Sexo invÃ¡lido.");
+    throw new Error("Sexo inválido.");
   }
   if (isCompany && (!companyName || !rifNumber)) {
     throw new Error("Faltan datos de empresa (nombre/RIF).");
@@ -87,7 +87,7 @@ async function guardarBanco(formData: FormData) {
     throw new Error("Faltan datos bancarios.");
   }
   if (!/^[0-9]{4}$/.test(bankAccountLast4)) {
-    throw new Error("Los Ãºltimos 4 dÃ­gitos deben ser numÃ©ricos.");
+    throw new Error("Los últimos 4 dígitos deben ser numéricos.");
   }
 
   await prisma.allyProfile.update({
@@ -129,10 +129,10 @@ export default async function AliadoKycPage() {
   return (
     <Container className="py-12">
       <div className="mx-auto max-w-3xl">
-        <h1 className="font-[var(--font-display)] text-3xl tracking-tight">VerificaciÃ³n (KYC)</h1>
+        <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Verificación (KYC)</h1>
         <p className="mt-3 text-sm leading-7 text-muted-foreground">
           Completa tus datos y sube los documentos solicitados. Admin/Root revisan manualmente y pueden aprobar/rechazar con notas.
-          Crear tu usuario no garantiza aprobaciÃ³n.
+          Crear tu usuario no garantiza aprobación.
         </p>
 
         <div className="mt-6 grid gap-3">
@@ -198,7 +198,7 @@ export default async function AliadoKycPage() {
                 </select>
               </div>
               <div className="grid gap-2 sm:col-span-2">
-                <Label htmlFor="phone">TelÃ©fono</Label>
+                <Label htmlFor="phone">Teléfono</Label>
                 <Input id="phone" name="phone" defaultValue={ally.phone || ""} required />
               </div>
               <div className="grid gap-2 sm:col-span-2">
@@ -222,7 +222,7 @@ export default async function AliadoKycPage() {
                   </div>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Si eres empresa, debes subir tambiÃ©n el documento RIF.
+                  Si eres empresa, debes subir también el documento RIF.
                 </p>
               </div>
 
@@ -246,7 +246,7 @@ export default async function AliadoKycPage() {
                 <Input id="bankName" name="bankName" defaultValue={ally.bankName || ""} placeholder="Ej: Banesco" required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="bankAccountLast4">Ãšltimos 4 dÃ­gitos</Label>
+                <Label htmlFor="bankAccountLast4">Últimos 4 dígitos</Label>
                 <Input
                   id="bankAccountLast4"
                   name="bankAccountLast4"
@@ -259,7 +259,7 @@ export default async function AliadoKycPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="bankHolderId">CÃ©dula o RIF</Label>
+                <Label htmlFor="bankHolderId">Cédula o RIF</Label>
                 <Input id="bankHolderId" name="bankHolderId" defaultValue={ally.bankHolderId || ""} placeholder="Ej: V-12345678" required />
               </div>
               <div className="grid gap-2 sm:col-span-2">
@@ -272,7 +272,7 @@ export default async function AliadoKycPage() {
                 </Button>
               </div>
               <p className="sm:col-span-2 text-xs text-muted-foreground">
-                Por seguridad, Godplaces. solo guarda los Ãºltimos 4 dÃ­gitos de la cuenta.
+                Por seguridad, Godplaces. solo guarda los últimos 4 dígitos de la cuenta.
               </p>
             </form>
           </CardContent>

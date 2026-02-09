@@ -109,7 +109,7 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
           }}
         />
         <p className="text-xs text-muted-foreground">
-          MÃ¡ximo 6 imÃ¡genes. Se sube a Vercel Blob y se guarda <code>url</code> + <code>pathname</code>.
+          Máximo 6 imágenes. Se sube a Vercel Blob y se guarda <code>url</code> + <code>pathname</code>.
         </p>
       </div>
 

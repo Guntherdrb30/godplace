@@ -72,7 +72,7 @@ async function cambiarEstadoPropiedad(formData: FormData) {
   const status = String(formData.get("status") || "");
   if (!id) throw new Error("Falta id.");
   if (!["DRAFT", "PENDING_APPROVAL", "PUBLISHED", "REJECTED"].includes(status)) {
-    throw new Error("Estado invÃ¡lido.");
+    throw new Error("Estado inválido.");
   }
 
   const p = await prisma.property.findUnique({
@@ -83,8 +83,8 @@ async function cambiarEstadoPropiedad(formData: FormData) {
 
   if (status === "PUBLISHED") {
     if (!p.ownershipContractUrl || !p.ownershipContractPathname) throw new Error("Falta contrato de propiedad.");
-    if (p.images.length < 1) throw new Error("Faltan imÃ¡genes.");
-    if (p.images.length > 6) throw new Error("MÃ¡ximo 6 imÃ¡genes.");
+    if (p.images.length < 1) throw new Error("Faltan imágenes.");
+    if (p.images.length > 6) throw new Error("Máximo 6 imágenes.");
   }
 
   await prisma.property.update({
@@ -109,7 +109,7 @@ async function cambiarEstadoPropiedad(formData: FormData) {
         status === "PUBLISHED"
           ? `Tu propiedad fue verificada y publicada: ${p.titulo}`
           : `Tu propiedad fue rechazada: ${p.titulo}`,
-    }).catch((e) => console.warn("[EMAIL][WARN] FallÃ³ envÃ­o de notificaciÃ³n de propiedad:", e));
+    }).catch((e) => console.warn("[EMAIL][WARN] Falló envío de notificación de propiedad:", e));
   }
 
   revalidatePath("/admin/propiedades");
@@ -128,7 +128,7 @@ export default async function AdminPropiedadesPage() {
         <div>
           <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Propiedades</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Revisiones y publicaciÃ³n del catÃ¡logo. Las propiedades de aliados pasan por <code>PENDING_APPROVAL</code>.
+            Revisiones y publicación del catálogo. Las propiedades de aliados pasan por <code>PENDING_APPROVAL</code>.
           </p>
         </div>
       </div>
@@ -141,11 +141,11 @@ export default async function AdminPropiedadesPage() {
           <CardContent>
             <form action={crearPropiedad} className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="titulo">TÃ­tulo</Label>
+                <Label htmlFor="titulo">Título</Label>
                 <Input id="titulo" name="titulo" required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea id="descripcion" name="descripcion" rows={5} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -160,7 +160,7 @@ export default async function AdminPropiedadesPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="huespedesMax">HuÃ©spedes mÃ¡x.</Label>
+                  <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
                   <Input id="huespedesMax" name="huespedesMax" type="number" min={1} defaultValue={4} />
                 </div>
                 <div className="grid gap-2">
@@ -189,7 +189,7 @@ export default async function AdminPropiedadesPage() {
                     <div>
                       <div className="font-medium text-foreground">{p.titulo}</div>
                       <div className="text-sm text-muted-foreground">
-                        {p.ciudad}, {p.estadoRegion} Â·{" "}
+                        {p.ciudad}, {p.estadoRegion} ·{" "}
                         <span className="font-medium">{labelPropertyStatus(p.status)}</span>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">

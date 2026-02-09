@@ -45,13 +45,13 @@ export function AllyContractUploader(props: {
       });
       const crData = await cr.json().catch(() => ({}));
       if (!cr.ok) {
-        toast("Se subiÃ³ a Blob pero no se pudo registrar en la base de datos.", {
+        toast("Se subió a Blob pero no se pudo registrar en la base de datos.", {
           description: crData?.message || "",
         });
         return;
       }
 
-      // Best-effort: eliminar el blob anterior si existÃ­a.
+      // Best-effort: eliminar el blob anterior si existía.
       if (crData?.prevPathname) {
         await fetch("/api/blob/delete", {
           method: "POST",
@@ -60,7 +60,7 @@ export function AllyContractUploader(props: {
         }).catch(() => {});
       }
 
-      toast("Contrato cargado. Queda pendiente de revisiÃ³n.");
+      toast("Contrato cargado. Queda pendiente de revisión.");
       setC({
         id: crData.id,
         status: "PENDING",
@@ -79,7 +79,7 @@ export function AllyContractUploader(props: {
       toast("Solo puedes eliminar contratos pendientes.");
       return;
     }
-    const ok = confirm("Â¿Eliminar el contrato cargado?");
+    const ok = confirm("¿Eliminar el contrato cargado?");
     if (!ok) return;
 
     const res = await fetch("/api/ally/contract/delete", {
@@ -122,14 +122,14 @@ export function AllyContractUploader(props: {
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Formatos sugeridos: PDF o imagen. Luego de subir el contrato firmado, queda en revisiÃ³n por Godplaces.
+            Formatos sugeridos: PDF o imagen. Luego de subir el contrato firmado, queda en revisión por Godplaces.
           </p>
         </div>
       </div>
 
       {!c ? (
         <div className="rounded-2xl border bg-white/70 p-6 text-sm text-muted-foreground">
-          AÃºn no has subido tu contrato firmado.
+          Aún no has subido tu contrato firmado.
         </div>
       ) : (
         <div className="rounded-2xl border bg-white p-4">

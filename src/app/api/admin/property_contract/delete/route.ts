@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ ok: false, message: "Datos invÃ¡lidos." }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
 
   const prop = await prisma.property.findUnique({
     where: { id: parsed.data.propertyId },

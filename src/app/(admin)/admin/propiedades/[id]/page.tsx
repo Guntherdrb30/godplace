@@ -35,7 +35,7 @@ async function actualizarPropiedad(formData: FormData) {
 
   if (!id) throw new Error("Falta id.");
   if (!titulo || !descripcion || !ciudad || !estadoRegion) throw new Error("Faltan campos.");
-  if (price <= 0) throw new Error("Precio invÃ¡lido.");
+  if (price <= 0) throw new Error("Precio inválido.");
 
   await prisma.property.update({
     where: { id },
@@ -68,7 +68,7 @@ async function setStatus(formData: FormData) {
   const status = String(formData.get("status") || "");
   const notasAdmin = String(formData.get("notasAdmin") || "").trim() || null;
   if (!id) throw new Error("Falta id.");
-  if (!["DRAFT", "PENDING_APPROVAL", "PUBLISHED", "REJECTED"].includes(status)) throw new Error("Estado invÃ¡lido.");
+  if (!["DRAFT", "PENDING_APPROVAL", "PUBLISHED", "REJECTED"].includes(status)) throw new Error("Estado inválido.");
 
   const p = await prisma.property.findUnique({
     where: { id },
@@ -80,8 +80,8 @@ async function setStatus(formData: FormData) {
     if (!p.ownershipContractUrl || !p.ownershipContractPathname) {
       throw new Error("Falta contrato de propiedad.");
     }
-    if (p.images.length < 1) throw new Error("Faltan imÃ¡genes.");
-    if (p.images.length > 6) throw new Error("MÃ¡ximo 6 imÃ¡genes.");
+    if (p.images.length < 1) throw new Error("Faltan imágenes.");
+    if (p.images.length > 6) throw new Error("Máximo 6 imágenes.");
   }
 
   await prisma.property.update({
@@ -108,17 +108,17 @@ async function setStatus(formData: FormData) {
         ? [
             `Tu propiedad fue verificada y publicada: ${p.titulo}`,
             "",
-            "Ya estÃ¡ visible en el catÃ¡logo.",
+            "Ya está visible en el catálogo.",
           ].join("\n")
         : [
             `Tu propiedad fue rechazada: ${p.titulo}`,
             notasAdmin ? `Notas: ${notasAdmin}` : "Notas: (no especificado)",
             "",
-            "Puedes editarla y reenviar a revisiÃ³n.",
+            "Puedes editarla y reenviar a revisión.",
           ].join("\n");
 
     await sendEmail({ to, subject, text }).catch((e) => {
-      console.warn("[EMAIL][WARN] FallÃ³ envÃ­o de notificaciÃ³n de estado de propiedad:", e);
+      console.warn("[EMAIL][WARN] Falló envío de notificación de estado de propiedad:", e);
     });
   }
 
@@ -140,7 +140,7 @@ export default async function AdminPropiedadEditPage(props: { params: Promise<{ 
     <Container>
       <div className="mb-6">
         <Link href="/admin/propiedades" className="text-sm text-muted-foreground hover:text-foreground">
-          â† Volver a propiedades
+          ← Volver a propiedades
         </Link>
       </div>
 
@@ -167,11 +167,11 @@ export default async function AdminPropiedadEditPage(props: { params: Promise<{ 
             <form action={actualizarPropiedad} className="grid gap-4">
               <input type="hidden" name="id" value={p.id} />
               <div className="grid gap-2">
-                <Label htmlFor="titulo">TÃ­tulo</Label>
+                <Label htmlFor="titulo">Título</Label>
                 <Input id="titulo" name="titulo" defaultValue={p.titulo} required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="descripcion">DescripciÃ³n</Label>
+                <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea id="descripcion" name="descripcion" defaultValue={p.descripcion} rows={6} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -186,7 +186,7 @@ export default async function AdminPropiedadEditPage(props: { params: Promise<{ 
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="huespedesMax">HuÃ©spedes mÃ¡x.</Label>
+                  <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
                   <Input id="huespedesMax" name="huespedesMax" type="number" min={1} defaultValue={p.huespedesMax} />
                 </div>
                 <div className="grid gap-2">
@@ -233,7 +233,7 @@ export default async function AdminPropiedadEditPage(props: { params: Promise<{ 
 
         <Card className="rounded-3xl bg-white/85 shadow-suave">
           <CardHeader>
-            <CardTitle>ImÃ¡genes</CardTitle>
+            <CardTitle>Imágenes</CardTitle>
           </CardHeader>
           <CardContent>
             <PropertyImageUploader

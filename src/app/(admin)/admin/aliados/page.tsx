@@ -34,7 +34,7 @@ async function aprobarAliado(formData: FormData) {
   });
   if (!ally) throw new Error("No existe el aliado.");
   if (!ally.contract) throw new Error("Falta contrato firmado.");
-  if (ally.contract.status !== "PENDING") throw new Error("El contrato no estÃ¡ pendiente.");
+  if (ally.contract.status !== "PENDING") throw new Error("El contrato no está pendiente.");
 
   if (!hasApprovedDoc(ally.kycDocs, "CEDULA")) throw new Error("Falta aprobar CEDULA.");
   if (!hasApprovedDoc(ally.kycDocs, "SELFIE_CEDULA")) throw new Error("Falta aprobar SELFIE_CEDULA.");
@@ -63,10 +63,10 @@ async function aprobarAliado(formData: FormData) {
     subject: "Godplaces: tu cuenta de aliado fue aprobada",
     text: [
       "Tu cuenta de aliado ha sido aprobada.",
-      "Ya puedes acceder a tu panel y cargar propiedades (cada propiedad tambiÃ©n pasa por revisiÃ³n).",
+      "Ya puedes acceder a tu panel y cargar propiedades (cada propiedad también pasa por revisión).",
     ].join("\n"),
   }).catch((e) => {
-    console.warn("[EMAIL][WARN] FallÃ³ envÃ­o de aprobaciÃ³n de aliado:", e);
+    console.warn("[EMAIL][WARN] Falló envío de aprobación de aliado:", e);
   });
 
   revalidatePath("/admin/aliados");
@@ -114,10 +114,10 @@ async function rechazarAliado(formData: FormData) {
       "Tu cuenta de aliado fue rechazada.",
       notasAdmin ? `Motivo/Notas: ${notasAdmin}` : "Motivo/Notas: (no especificado)",
       "",
-      "Puedes ingresar y corregir la informaciÃ³n/documentos y volver a enviar tu contrato si aplica.",
+      "Puedes ingresar y corregir la información/documentos y volver a enviar tu contrato si aplica.",
     ].join("\n"),
   }).catch((e) => {
-    console.warn("[EMAIL][WARN] FallÃ³ envÃ­o de rechazo de aliado:", e);
+    console.warn("[EMAIL][WARN] Falló envío de rechazo de aliado:", e);
   });
 
   revalidatePath("/admin/aliados");
@@ -140,13 +140,13 @@ export default async function AdminAliadosPage() {
     <Container>
       <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Aliados</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        RevisiÃ³n de contratos firmados y aprobaciÃ³n final del aliado.
+        Revisión de contratos firmados y aprobación final del aliado.
       </p>
 
       <div className="mt-8 grid gap-6">
         {allies.length === 0 ? (
           <div className="rounded-2xl border bg-white/70 p-8 text-sm text-muted-foreground">
-            No hay aliados externos registrados todavÃ­a.
+            No hay aliados externos registrados todavía.
           </div>
         ) : (
           allies.map((a) => {

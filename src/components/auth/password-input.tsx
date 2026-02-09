@@ -31,7 +31,7 @@ export function PasswordInput(props: {
         type="button"
         variant="ghost"
         className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 p-0"
-        aria-label={show ? "Ocultar contraseÃ±a" : "Mostrar contraseÃ±a"}
+        aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
         onClick={() => setShow((v) => !v)}
       >
         {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

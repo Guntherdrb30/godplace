@@ -24,7 +24,7 @@ export default async function RegistroPage(props: {
               Crear cuenta
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Registro con usuario/correo y contraseÃ±a.
+              Registro con usuario/correo y contraseña.
             </p>
           </CardHeader>
           <CardContent>
@@ -37,7 +37,7 @@ export default async function RegistroPage(props: {
             <RegisterForm />
 
             <p className="mt-5 text-sm text-muted-foreground">
-              Â¿Ya tienes cuenta?{" "}
+              ¿Ya tienes cuenta?{" "}
               <Link className="text-foreground underline" href="/login">
                 Acceder
               </Link>

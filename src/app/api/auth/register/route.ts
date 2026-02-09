@@ -15,7 +15,7 @@ const schema = z
       .string()
       .trim()
       .toLowerCase()
-      .regex(/^[a-z0-9._-]+$/, "El usuario solo puede contener letras minÃºsculas, nÃºmeros, punto, guiÃ³n y guion bajo.")
+      .regex(/^[a-z0-9._-]+$/, "El usuario solo puede contener letras minúsculas, números, punto, guión y guion bajo.")
       .min(3)
       .max(30)
       .optional(),
@@ -35,7 +35,7 @@ const schema = z
   })
   .refine((d) => d.password === d.passwordConfirm, {
     path: ["passwordConfirm"],
-    message: "Las contraseÃ±as no coinciden.",
+    message: "Las contraseñas no coinciden.",
   })
   .superRefine((d, ctx) => {
     if (d.tipoCuenta === "ALIADO") {
@@ -44,7 +44,7 @@ const schema = z
       if (!d.apellido) ctx.addIssue({ code: "custom", path: ["apellido"], message: "Apellido requerido." });
       if (!d.fechaNacimiento) ctx.addIssue({ code: "custom", path: ["fechaNacimiento"], message: "Fecha de nacimiento requerida." });
       if (!d.sexo) ctx.addIssue({ code: "custom", path: ["sexo"], message: "Sexo requerido." });
-      if (!d.telefono) ctx.addIssue({ code: "custom", path: ["telefono"], message: "TelÃ©fono requerido." });
+      if (!d.telefono) ctx.addIssue({ code: "custom", path: ["telefono"], message: "Teléfono requerido." });
       if (!d.acceptTerms) ctx.addIssue({ code: "custom", path: ["acceptTerms"], message: "Debes aceptar las condiciones." });
 
       if (d.isCompany) {
@@ -78,7 +78,7 @@ function isUploadablePdfOrImage(file: File): boolean {
 async function uploadKycFile(input: { allyProfileId: string; file: File; prefix: string }) {
   const maxBytes = 15 * 1024 * 1024; // 15MB
   if (typeof input.file.size === "number" && input.file.size > maxBytes) {
-    throw new Error("Archivo demasiado grande (mÃƒÂ¡x. 15MB).");
+    throw new Error("Archivo demasiado grande (máx. 15MB).");
   }
   if (!isUploadablePdfOrImage(input.file)) {
     throw new Error("Tipo de archivo no permitido. Usa PDF o imagen.");
@@ -115,18 +115,18 @@ export async function POST(req: Request) {
     rifNumber: String(form.get("rifNumber") || "").trim() || undefined,
     acceptTerms: String(form.get("acceptTerms") || "") === "1",
   });
-  if (!parsed.success) return redirectConError(req, parsed.error.issues[0]?.message || "Datos invÃ¡lidos.");
+  if (!parsed.success) return redirectConError(req, parsed.error.issues[0]?.message || "Datos inválidos.");
 
   const dob = parsed.data.fechaNacimiento ? parseDateOnly(parsed.data.fechaNacimiento) : null;
   if (parsed.data.tipoCuenta === "ALIADO" && !dob) {
-    return redirectConError(req, "Fecha de nacimiento invÃ¡lida.");
+    return redirectConError(req, "Fecha de nacimiento inválida.");
   }
 
   const passwordHash = await hashPassword(parsed.data.password);
 
   try {
     const user = await prisma.$transaction(async (tx) => {
-      // En producciÃ³n, `prisma db seed` puede no ejecutarse. Para que el registro funcione
+      // En producción, `prisma db seed` puede no ejecutarse. Para que el registro funcione
       // siempre, garantizamos roles base de forma idempotente.
       const roleCliente = await tx.role.upsert({
         where: { code: "CLIENTE" },
@@ -197,7 +197,7 @@ export async function POST(req: Request) {
       });
     });
 
-    // Si es aliado: exigir documentos KYC en el registro (cÃ©dula, selfie y RIF si aplica).
+    // Si es aliado: exigir documentos KYC en el registro (cédula, selfie y RIF si aplica).
     if (parsed.data.tipoCuenta === "ALIADO" && user.allyProfile) {
       const cedula = form.get("kycCedula");
       const selfie = form.get("kycSelfieCedula");
@@ -205,11 +205,11 @@ export async function POST(req: Request) {
 
       if (!(cedula instanceof File) || cedula.size === 0) {
         await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
-        return redirectConError(req, "Falta el documento: cÃ©dula.");
+        return redirectConError(req, "Falta el documento: cédula.");
       }
       if (!(selfie instanceof File) || selfie.size === 0) {
         await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
-        return redirectConError(req, "Falta el documento: selfie con cÃ©dula.");
+        return redirectConError(req, "Falta el documento: selfie con cédula.");
       }
       if (parsed.data.isCompany && (!(rif instanceof File) || rif.size === 0)) {
         await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
@@ -251,7 +251,7 @@ export async function POST(req: Request) {
         // Best-effort cleanup: borrar blobs subidos y eliminar el usuario creado.
         await Promise.all(uploadedPathnames.map((p) => del(p).catch(() => {})));
         await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
-        console.warn("[KYC][WARN] FallÃ³ registro KYC durante alta de aliado:", e);
+        console.warn("[KYC][WARN] Falló registro KYC durante alta de aliado:", e);
         return redirectConError(req, "No se pudo completar el registro KYC. Intenta de nuevo.");
       }
     }
@@ -272,7 +272,7 @@ export async function POST(req: Request) {
       });
 
       await sendEmail({ to: user.email, subject: email.subject, text: email.text }).catch((e) => {
-        console.warn("[EMAIL][WARN] FallÃ³ envÃ­o de contrato de aliado:", e);
+        console.warn("[EMAIL][WARN] Falló envío de contrato de aliado:", e);
       });
     }
 
@@ -291,7 +291,7 @@ export async function POST(req: Request) {
         : null;
     const msg =
       code === "P2002"
-        ? "Ese correo o usuario ya estÃ¡ registrado."
+        ? "Ese correo o usuario ya está registrado."
         : "No se pudo crear la cuenta.";
     return redirectConError(req, msg);
   }

@@ -62,7 +62,7 @@ export async function POST(req: Request) {
 
   const maxBytes = 15 * 1024 * 1024; // 15MB
   if (typeof file.size === "number" && file.size > maxBytes) {
-    return NextResponse.json({ ok: false, message: "Archivo demasiado grande (mÃ¡x. 15MB)." }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "Archivo demasiado grande (máx. 15MB)." }, { status: 400 });
   }
 
   const ct = (file.type || "").toLowerCase();

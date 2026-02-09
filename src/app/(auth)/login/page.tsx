@@ -27,7 +27,7 @@ export default async function LoginPage(props: {
               Acceder
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Ingresa con tu correo o usuario y contraseÃ±a.
+              Ingresa con tu correo o usuario y contraseña.
             </p>
           </CardHeader>
           <CardContent>
@@ -43,7 +43,7 @@ export default async function LoginPage(props: {
                 <Input id="identifier" name="identifier" type="text" autoComplete="username" required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="password">ContraseÃ±a</Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <PasswordInput id="password" name="password" autoComplete="current-password" required />
               </div>
               <Button variant="brand" type="submit">
@@ -52,7 +52,7 @@ export default async function LoginPage(props: {
             </form>
 
             <p className="mt-5 text-sm text-muted-foreground">
-              Â¿No tienes cuenta?{" "}
+              ¿No tienes cuenta?{" "}
               <Link className="text-foreground underline" href="/registro">
                 Crear cuenta
               </Link>

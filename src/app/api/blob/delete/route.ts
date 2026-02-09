@@ -31,12 +31,12 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, message: "Datos invÃ¡lidos." }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
   }
 
   const pathname = extractPathname(parsed.data.urlOrPathname);
   if (!pathname) {
-    return NextResponse.json({ ok: false, message: "Pathname invÃ¡lido." }, { status: 400 });
+    return NextResponse.json({ ok: false, message: "Pathname inválido." }, { status: 400 });
   }
 
   const isStaff = user.roles.includes("ADMIN") || user.roles.includes("ROOT");
