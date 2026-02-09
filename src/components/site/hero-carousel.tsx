@@ -18,6 +18,7 @@ export type HeroSlidePublic = {
 export function HeroCarousel(props: { slides: HeroSlidePublic[]; variant?: "card" | "full" }) {
   const slides = props.slides;
   const variant = props.variant ?? "card";
+  const imageSizes = variant === "full" ? "100vw" : "(min-width: 1024px) 40vw, 100vw";
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
 
@@ -67,7 +68,7 @@ export function HeroCarousel(props: { slides: HeroSlidePublic[]; variant?: "card
               fill
               priority
               className="object-cover"
-              sizes="(min-width: 1024px) 40vw, 100vw"
+              sizes={imageSizes}
             />
             <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(0,75,87,0.65),rgba(0,75,87,0.15)_55%,rgba(0,0,0,0.05))]" />
             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
