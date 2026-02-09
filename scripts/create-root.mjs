@@ -1,12 +1,28 @@
+import dns from "node:dns";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// Neon sometimes advertises IPv6; on Windows/VPN setups IPv6 can be broken and Prisma
+// may fail to connect. Prefer IPv4 deterministically for this one-off script.
+dns.setDefaultResultOrder("ipv4first");
 
 function requireEnv(name) {
   const v = process.env[name];
   if (!v) throw new Error(`Missing required env var: ${name}`);
   return v;
+}
+
+function safeDbLabel(urlStr) {
+  if (!urlStr) return "unknown";
+  try {
+    const u = new URL(urlStr);
+    const host = u.hostname || "unknown-host";
+    const db = (u.pathname || "").replace(/^\//, "") || "unknown-db";
+    const isPooler = host.includes("-pooler.");
+    return `${host}/${db}${isPooler ? " (pooler)" : ""}`;
+  } catch {
+    return "unknown";
+  }
 }
 
 async function main() {
@@ -18,12 +34,16 @@ async function main() {
     );
   }
 
+  console.log(`[create-root] DB: ${safeDbLabel(process.env.DATABASE_URL)}`);
+
   const email = requireEnv("ROOT_EMAIL").toLowerCase().trim();
   const password = requireEnv("ROOT_PASSWORD");
   const nombre = (process.env.ROOT_NOMBRE || "ROOT").trim();
 
   if (!email.includes("@")) throw new Error("ROOT_EMAIL must be a valid email.");
   if (password.length < 12) throw new Error("ROOT_PASSWORD must be at least 12 characters.");
+
+  const prisma = new PrismaClient();
 
   // Ensure critical roles exist (seed may not run in some environments).
   const roles = [
@@ -59,15 +79,12 @@ async function main() {
   });
 
   console.log(`[create-root] OK: ${user.email}`);
+
+  await prisma.$disconnect();
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
   .catch(async (e) => {
     console.error(e);
-    await prisma.$disconnect();
     process.exit(1);
   });
-
