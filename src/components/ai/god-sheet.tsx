@@ -39,7 +39,7 @@ export function GodSheet(props: {
   const [msgs, setMsgs] = React.useState<Msg[]>([
     {
       role: "assistant",
-      content: `Soy ${props.branding.agentName}. En este MVP el chat es un placeholder. No invento propiedades ni precios: consulto el catálogo real.`,
+      content: `Soy ${props.branding.agentName}. Cuéntame qué alojamiento buscas (ciudad, fechas, huéspedes, presupuesto) y te muestro opciones reales del catálogo.`,
     },
   ]);
   const [cargandoSesion, setCargandoSesion] = React.useState(false);

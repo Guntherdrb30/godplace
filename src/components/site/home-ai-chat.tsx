@@ -32,7 +32,7 @@ export function HomeAiChat() {
     {
       role: "assistant",
       content:
-        `Soy ${god.branding.agentName}. Describe qué alojamiento buscas (ciudad, fechas, huéspedes, presupuesto, amenities) y te guío usando el catálogo real.`,
+        `Soy ${god.branding.agentName}. Describe qué alojamiento buscas (ciudad, fechas, huéspedes, presupuesto, amenities) y te muestro opciones reales del catálogo.`,
     },
   ]);
   const [conectando, setConectando] = React.useState(false);
