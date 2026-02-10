@@ -8,6 +8,10 @@ import { GodReservaModal } from "@/components/ai/god-reserva-modal";
 export type AiBranding = {
   brandName: string;
   agentName: string;
+  colors: {
+    primaryHsl: string;
+    secondaryHsl: string;
+  };
 };
 
 type GodContextValue = {

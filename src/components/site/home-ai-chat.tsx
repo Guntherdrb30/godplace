@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useGod } from "@/components/ai/god-provider";
+import { ChatKitEmbed } from "@/components/ai/chatkit-embed";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -27,6 +28,8 @@ async function enviarMensaje(input: { message: string; history: Msg[] }) {
 
 export function HomeAiChat() {
   const god = useGod();
+  const chatProvider = process.env.NEXT_PUBLIC_CHAT_PROVIDER || "local";
+  const usarChatKit = chatProvider === "chatkit";
   const [texto, setTexto] = React.useState("");
   const [msgs, setMsgs] = React.useState<Msg[]>([
     {
@@ -77,6 +80,29 @@ export function HomeAiChat() {
       setEnviando(false);
     }
   };
+
+  if (usarChatKit) {
+    return (
+      <section className="mt-6 sm:mt-8">
+        <div className="grid gap-3">
+          <div>
+            <h2 className="font-[var(--font-display)] text-2xl tracking-tight text-foreground">
+              Búsqueda con IA
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Conversa con {god.branding.agentName} y pide recomendaciones.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border bg-white/85 p-5 shadow-suave">
+            <div className="h-[520px] overflow-hidden rounded-2xl border bg-white">
+              <ChatKitEmbed className="h-full w-full" branding={god.branding} />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-6 sm:mt-8">
