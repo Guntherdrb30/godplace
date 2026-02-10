@@ -1,0 +1,2 @@
+export const PROPERTY_CONTRACT_TERMS_VERSION = "2026-02-10";
+

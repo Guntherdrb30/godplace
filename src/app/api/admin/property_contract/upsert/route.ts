@@ -30,6 +30,8 @@ export async function POST(req: Request) {
     data: {
       ownershipContractUrl: parsed.data.url,
       ownershipContractPathname: parsed.data.pathname,
+      ownershipContractAcceptedAt: null,
+      ownershipContractTermsVersion: null,
     },
   });
 
@@ -43,4 +45,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, prevPathname: prop.ownershipContractPathname || null });
 }
-

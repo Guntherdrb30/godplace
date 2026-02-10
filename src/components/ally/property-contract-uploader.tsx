@@ -5,16 +5,49 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PROPERTY_CONTRACT_TERMS_VERSION } from "@/lib/legal";
 
 export function PropertyContractUploader(props: {
   propertyId: string;
   url: string | null;
   pathname: string | null;
+  acceptedAt: string | null;
+  termsVersion: string | null;
   disabled?: boolean;
 }) {
   const [url, setUrl] = React.useState<string | null>(props.url);
   const [pathname, setPathname] = React.useState<string | null>(props.pathname);
+  const [acceptedAt, setAcceptedAt] = React.useState<string | null>(props.acceptedAt);
+  const [termsVersion, setTermsVersion] = React.useState<string | null>(props.termsVersion);
+  const [accepted, setAccepted] = React.useState(
+    !!props.acceptedAt && props.termsVersion === PROPERTY_CONTRACT_TERMS_VERSION,
+  );
   const [subiendo, setSubiendo] = React.useState(false);
+
+  const acceptedRecorded = !!acceptedAt && termsVersion === PROPERTY_CONTRACT_TERMS_VERSION;
+
+  const guardarAceptacion = async () => {
+    if (!accepted) return;
+    if (!url || !pathname) return;
+    setSubiendo(true);
+    try {
+      const res = await fetch("/api/ally/property_contract/accept_terms", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ propertyId: props.propertyId, acceptedTerms: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast("No se pudo guardar la aceptación.", { description: data?.message || "" });
+        return;
+      }
+      setAcceptedAt(data?.ownershipContractAcceptedAt || null);
+      setTermsVersion(data?.ownershipContractTermsVersion || null);
+      toast("Aceptación guardada.");
+    } finally {
+      setSubiendo(false);
+    }
+  };
 
   const subir = async (file: File) => {
     setSubiendo(true);
@@ -38,6 +71,7 @@ export function PropertyContractUploader(props: {
           propertyId: props.propertyId,
           url: upData.url,
           pathname: upData.pathname,
+          acceptedTerms: accepted,
         }),
       });
       const crData = await cr.json().catch(() => ({}));
@@ -58,6 +92,8 @@ export function PropertyContractUploader(props: {
 
       setUrl(upData.url);
       setPathname(upData.pathname);
+      setAcceptedAt(crData?.ownershipContractAcceptedAt || null);
+      setTermsVersion(crData?.ownershipContractTermsVersion || null);
       toast("Contrato cargado.");
     } finally {
       setSubiendo(false);
@@ -89,6 +125,9 @@ export function PropertyContractUploader(props: {
 
     setUrl(null);
     setPathname(null);
+    setAcceptedAt(null);
+    setTermsVersion(null);
+    setAccepted(false);
     toast("Contrato eliminado.");
   };
 
@@ -96,13 +135,47 @@ export function PropertyContractUploader(props: {
 
   return (
     <div className="space-y-3">
+      <div className="rounded-2xl border bg-white p-4 text-sm text-muted-foreground">
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            className="mt-1 h-4 w-4"
+            checked={accepted}
+            onChange={(e) => setAccepted(e.target.checked)}
+            disabled={disabled}
+          />
+          <span className="leading-6">
+            Declaro que tengo autorización legal para publicar esta propiedad y{" "}
+            <a className="underline" href="/terminos" target="_blank" rel="noreferrer">
+              acepto los Términos y Condiciones
+            </a>{" "}
+            (versión {PROPERTY_CONTRACT_TERMS_VERSION}).
+          </span>
+        </label>
+        {!acceptedRecorded && url ? (
+          <div className="mt-3 flex justify-end">
+            <Button type="button" variant="brand" size="sm" onClick={() => void guardarAceptacion()} disabled={disabled || !accepted}>
+              Guardar aceptación
+            </Button>
+          </div>
+        ) : null}
+        {acceptedAt ? (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Aceptado:{" "}
+            <span className="font-medium text-foreground">
+              {new Date(acceptedAt).toLocaleString("es-VE")}
+            </span>
+          </div>
+        ) : null}
+      </div>
+
       <div className="grid gap-2">
         <Label htmlFor="prop-contract">Contrato de propiedad (obligatorio)</Label>
         <Input
           id="prop-contract"
           type="file"
           accept="application/pdf,image/*"
-          disabled={disabled}
+          disabled={disabled || !accepted}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) void subir(file);
@@ -136,4 +209,3 @@ export function PropertyContractUploader(props: {
     </div>
   );
 }
-

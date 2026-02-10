@@ -7,9 +7,7 @@ import { PROPERTY_CONTRACT_TERMS_VERSION } from "@/lib/legal";
 
 const schema = z.object({
   propertyId: z.string().min(1),
-  url: z.string().url(),
-  pathname: z.string().min(1),
-  acceptedTerms: z.boolean(),
+  acceptedTerms: z.literal(true),
 });
 
 export async function POST(req: Request) {
@@ -20,43 +18,51 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
-  if (!parsed.data.acceptedTerms) {
-    return NextResponse.json(
-      { ok: false, message: "Debes aceptar los términos y condiciones para subir el contrato." },
-      { status: 400 },
-    );
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
   }
 
   const prop = await prisma.property.findUnique({
     where: { id: parsed.data.propertyId },
-    select: { id: true, allyProfileId: true, status: true, ownershipContractPathname: true },
+    select: {
+      id: true,
+      allyProfileId: true,
+      status: true,
+      ownershipContractUrl: true,
+      ownershipContractPathname: true,
+    },
   });
   if (!prop || prop.allyProfileId !== user.allyProfileId) {
     return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
   }
   if (prop.status === "PUBLISHED") {
-    return NextResponse.json({ ok: false, message: "No puedes cambiar el contrato de una propiedad publicada." }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, message: "No puedes cambiar el contrato de una propiedad publicada." },
+      { status: 400 },
+    );
+  }
+  if (!prop.ownershipContractUrl || !prop.ownershipContractPathname) {
+    return NextResponse.json(
+      { ok: false, message: "Primero debes subir el contrato de propiedad." },
+      { status: 400 },
+    );
   }
 
   const updated = await prisma.property.update({
     where: { id: prop.id },
     data: {
-      ownershipContractUrl: parsed.data.url,
-      ownershipContractPathname: parsed.data.pathname,
       ownershipContractAcceptedAt: new Date(),
       ownershipContractTermsVersion: PROPERTY_CONTRACT_TERMS_VERSION,
     },
-    select: { id: true, ownershipContractPathname: true, ownershipContractAcceptedAt: true, ownershipContractTermsVersion: true },
+    select: { id: true, ownershipContractAcceptedAt: true, ownershipContractTermsVersion: true },
   });
 
   await registrarAuditoria({
     actorUserId: user.id,
-    accion: "ally_property_contract.upsert",
+    accion: "ally_property_contract.accept_terms",
     entidadTipo: "property",
     entidadId: updated.id,
     metadata: {
-      prevPathname: prop.ownershipContractPathname || null,
       ownershipContractAcceptedAt: updated.ownershipContractAcceptedAt?.toISOString() || null,
       ownershipContractTermsVersion: updated.ownershipContractTermsVersion || null,
     },
@@ -65,8 +71,8 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     propertyId: updated.id,
-    prevPathname: prop.ownershipContractPathname || null,
     ownershipContractAcceptedAt: updated.ownershipContractAcceptedAt?.toISOString() || null,
     ownershipContractTermsVersion: updated.ownershipContractTermsVersion || null,
   });
 }
+

@@ -13,12 +13,37 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
   const [images, setImages] = React.useState<Img[]>(props.images);
   const [subiendo, setSubiendo] = React.useState(false);
 
-  const subir = async (file: File) => {
+  const subir = async (files: FileList | File[]) => {
+    const actuales = images.length;
+    const restantes = 6 - actuales;
+    if (restantes <= 0) {
+      toast("Máximo 6 imágenes por propiedad.");
+      return;
+    }
+
+    const list = Array.from(files);
+    const aSubir = list.slice(0, restantes);
+    if (list.length > restantes) {
+      toast("Solo se subirán las primeras imágenes.", {
+        description: "Máximo 6 imágenes por propiedad.",
+      });
+    }
+
     setSubiendo(true);
     try {
-      const fd = new FormData();
-      fd.set("file", file);
-      fd.set("folder", "properties");
+      for (const file of aSubir) {
+        // eslint-disable-next-line no-await-in-loop
+        await subirUna(file);
+      }
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
+  const subirUna = async (file: File) => {
+    const fd = new FormData();
+    fd.set("file", file);
+    fd.set("folder", "properties");
       fd.set("entityId", props.propertyId);
 
       const up = await fetch("/api/blob/upload", { method: "POST", body: fd });
@@ -58,9 +83,6 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
           orden: imgs.length,
         },
       ]);
-    } finally {
-      setSubiendo(false);
-    }
   };
 
   const eliminar = async (imageId: string) => {
@@ -101,10 +123,11 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
           id="img"
           type="file"
           accept="image/*"
+          multiple
           disabled={subiendo || images.length >= 6}
           onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void subir(file);
+            const files = e.target.files;
+            if (files && files.length > 0) void subir(files);
             e.currentTarget.value = "";
           }}
         />

@@ -27,7 +27,12 @@ export async function POST(req: Request) {
 
   await prisma.property.update({
     where: { id: prop.id },
-    data: { ownershipContractUrl: null, ownershipContractPathname: null },
+    data: {
+      ownershipContractUrl: null,
+      ownershipContractPathname: null,
+      ownershipContractAcceptedAt: null,
+      ownershipContractTermsVersion: null,
+    },
   });
 
   await registrarAuditoria({
@@ -40,4 +45,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, pathname });
 }
-

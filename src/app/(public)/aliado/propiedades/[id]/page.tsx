@@ -18,6 +18,7 @@ import { VenezuelaStateCitySelect } from "@/components/venezuela/state-city-sele
 import { isAllyFullyApproved } from "@/lib/ally/approval";
 import { sendEmail } from "@/lib/email";
 import type { PropertyOperationType } from "@prisma/client";
+import { PROPERTY_CONTRACT_TERMS_VERSION } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -124,6 +125,9 @@ async function enviarARevision(formData: FormData) {
 
   if (!p.ownershipContractUrl || !p.ownershipContractPathname) {
     throw new Error("Debes subir el contrato de propiedad antes de enviar a revisión.");
+  }
+  if (!p.ownershipContractAcceptedAt || p.ownershipContractTermsVersion !== PROPERTY_CONTRACT_TERMS_VERSION) {
+    throw new Error("Debes aceptar los términos y condiciones antes de enviar a revisión.");
   }
 
   const imagesCount = p.images.length;
@@ -287,6 +291,8 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
                   propertyId={p.id}
                   url={p.ownershipContractUrl}
                   pathname={p.ownershipContractPathname}
+                  acceptedAt={p.ownershipContractAcceptedAt ? p.ownershipContractAcceptedAt.toISOString() : null}
+                  termsVersion={p.ownershipContractTermsVersion}
                   disabled={p.status === "PUBLISHED"}
                 />
               </div>
@@ -333,4 +339,3 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
     </Container>
   );
 }
-

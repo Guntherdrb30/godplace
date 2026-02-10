@@ -308,6 +308,8 @@ model Property {
 
   ownershipContractUrl      String?
   ownershipContractPathname String?
+  ownershipContractAcceptedAt DateTime?
+  ownershipContractTermsVersion String?
 
   huespedesMax  Int
   habitaciones  Int @default(1)
