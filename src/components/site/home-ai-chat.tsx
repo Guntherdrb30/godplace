@@ -14,6 +14,17 @@ async function crearSesion() {
   return res.json().catch(() => ({}));
 }
 
+async function enviarMensaje(input: { message: string; history: Msg[] }) {
+  const res = await fetch("/api/chat/message", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.message || "No se pudo enviar.");
+  return data as { ok: true; text: string };
+}
+
 export function HomeAiChat() {
   const god = useGod();
   const [texto, setTexto] = React.useState("");
@@ -26,6 +37,7 @@ export function HomeAiChat() {
   ]);
   const [conectando, setConectando] = React.useState(false);
   const [sessionChecked, setSessionChecked] = React.useState(false);
+  const [enviando, setEnviando] = React.useState(false);
 
   const ensureSession = React.useCallback(async () => {
     if (sessionChecked) return;
@@ -49,15 +61,21 @@ export function HomeAiChat() {
     setTexto("");
     await ensureSession();
 
+    const history = msgs.slice(-18);
     setMsgs((m) => [...m, { role: "user", content: limpio }]);
-    setMsgs((m) => [
-      ...m,
-      {
-        role: "assistant",
-        content:
-          "MVP: el chat todavía es placeholder. Mientras tanto puedes filtrar propiedades en /search o, si eres ADMIN/ROOT, gestionar el catálogo en /admin.",
-      },
-    ]);
+    setEnviando(true);
+    try {
+      const data = await enviarMensaje({ message: limpio, history });
+      setMsgs((m) => [...m, { role: "assistant", content: data.text }]);
+    } catch (e) {
+      toast("No se pudo responder.", { description: e instanceof Error ? e.message : "" });
+      setMsgs((m) => [
+        ...m,
+        { role: "assistant", content: "Lo siento, no pude responder en este momento. Intenta nuevamente." },
+      ]);
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -107,12 +125,15 @@ export function HomeAiChat() {
                 <Button type="button" variant="outline" onClick={() => setTexto("")}>
                   Limpiar
                 </Button>
-                <Button type="button" variant="brand" onClick={enviar}>
+                <Button type="button" variant="brand" onClick={enviar} disabled={enviando}>
                   Enviar
                 </Button>
               </div>
               {conectando ? (
                 <div className="text-xs text-muted-foreground">Conectando…</div>
+              ) : null}
+              {enviando ? (
+                <div className="text-xs text-muted-foreground">Pensando…</div>
               ) : null}
             </div>
           </div>
