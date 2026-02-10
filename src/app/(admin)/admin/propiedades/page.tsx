@@ -13,6 +13,7 @@ import { registrarAuditoria } from "@/lib/audit";
 import type { PropertyStatus } from "@prisma/client";
 import { labelPropertyStatus } from "@/lib/labels";
 import { sendEmail } from "@/lib/email";
+import { VenezuelaStateCitySelect } from "@/components/venezuela/state-city-select";
 
 export const dynamic = "force-dynamic";
 
@@ -148,16 +149,13 @@ export default async function AdminPropiedadesPage() {
                 <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea id="descripcion" name="descripcion" rows={5} required />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="ciudad">Ciudad</Label>
-                  <Input id="ciudad" name="ciudad" required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="estadoRegion">Estado</Label>
-                  <Input id="estadoRegion" name="estadoRegion" required />
-                </div>
-              </div>
+              <VenezuelaStateCitySelect
+                stateName="estadoRegion"
+                cityName="ciudad"
+                required
+                defaultState=""
+                defaultCity=""
+              />
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="huespedesMax">Huéspedes máx.</Label>
@@ -221,4 +219,3 @@ export default async function AdminPropiedadesPage() {
     </Container>
   );
 }
-

@@ -12,18 +12,35 @@ export function VenezuelaStateCitySelect(props: {
   required?: boolean;
   disabled?: boolean;
 }) {
-  const initialState = (props.defaultState && (VENEZUELA_STATES as readonly string[]).includes(props.defaultState))
-    ? props.defaultState
-    : "";
-  const [state, setState] = React.useState<string>(initialState);
-  const [city, setCity] = React.useState<string>(props.defaultCity || "");
+  const defaultState = (props.defaultState || "").trim();
+  const defaultCity = (props.defaultCity || "").trim();
 
-  const cities = state && (VENEZUELA_CITIES_BY_STATE as Record<string, string[]>)[state]
-    ? (VENEZUELA_CITIES_BY_STATE as Record<string, string[]>)[state]
-    : [];
+  const defaultStateIsKnown = defaultState
+    ? (VENEZUELA_STATES as readonly string[]).includes(defaultState)
+    : false;
+
+  const initialState = defaultState ? defaultState : "";
+  const [state, setState] = React.useState<string>(initialState);
+  const [city, setCity] = React.useState<string>(defaultCity);
+
+  const stateIsKnown = state ? (VENEZUELA_STATES as readonly string[]).includes(state) : false;
+
+  const states =
+    defaultState && !defaultStateIsKnown
+      ? ([defaultState, ...VENEZUELA_STATES] as readonly string[])
+      : VENEZUELA_STATES;
+
+  const baseCities =
+    state && (VENEZUELA_CITIES_BY_STATE as Record<string, string[]>)[state]
+      ? (VENEZUELA_CITIES_BY_STATE as Record<string, string[]>)[state]
+      : [];
+
+  const cities = city && !baseCities.includes(city) ? [city, ...baseCities] : baseCities;
 
   React.useEffect(() => {
-    if (city && !cities.includes(city)) setCity("");
+    if (!state) return;
+    if (!stateIsKnown) return;
+    if (city && !baseCities.includes(city)) setCity("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
@@ -41,7 +58,7 @@ export function VenezuelaStateCitySelect(props: {
           disabled={props.disabled}
         >
           <option value="">Selecciona...</option>
-          {VENEZUELA_STATES.map((s) => (
+          {states.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
