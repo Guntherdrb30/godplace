@@ -5,6 +5,11 @@ import { GodFab } from "@/components/ai/god-fab";
 import { GodSheet } from "@/components/ai/god-sheet";
 import { GodReservaModal } from "@/components/ai/god-reserva-modal";
 
+export type AiBranding = {
+  brandName: string;
+  agentName: string;
+};
+
 type GodContextValue = {
   abrir: boolean;
   setAbrir: (v: boolean) => void;
@@ -12,6 +17,7 @@ type GodContextValue = {
   modalReservaAbierto: boolean;
   setModalReservaAbierto: (v: boolean) => void;
   abrirModalReserva: () => void;
+  branding: AiBranding;
 };
 
 const GodContext = React.createContext<GodContextValue | null>(null);
@@ -22,7 +28,7 @@ export function useGod() {
   return ctx;
 }
 
-export function GodProvider(props: { children: React.ReactNode }) {
+export function GodProvider(props: { children: React.ReactNode; branding: AiBranding }) {
   const [abrir, setAbrir] = React.useState(false);
   const [mensajeInicial, setMensajeInicial] = React.useState<string | null>(null);
   const [modalReservaAbierto, setModalReservaAbierto] = React.useState(false);
@@ -47,14 +53,22 @@ export function GodProvider(props: { children: React.ReactNode }) {
         modalReservaAbierto,
         setModalReservaAbierto,
         abrirModalReserva,
+        branding: props.branding,
       }}
     >
       {props.children}
-      <GodFab onClick={() => setAbrir(true)} />
-      <GodSheet open={abrir} onOpenChange={setAbrir} mensajeInicial={mensajeInicial} onConsumedMensajeInicial={() => setMensajeInicial(null)} />
+      <GodFab onClick={() => setAbrir(true)} label={props.branding.agentName} />
+      <GodSheet
+        open={abrir}
+        onOpenChange={setAbrir}
+        mensajeInicial={mensajeInicial}
+        onConsumedMensajeInicial={() => setMensajeInicial(null)}
+        branding={props.branding}
+      />
       <GodReservaModal
         open={modalReservaAbierto}
         onOpenChange={setModalReservaAbierto}
+        agentName={props.branding.agentName}
         onSubmit={(texto) => {
           setModalReservaAbierto(false);
           abrirConMensaje(texto);

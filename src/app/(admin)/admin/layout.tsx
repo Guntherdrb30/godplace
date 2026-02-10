@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { requireRole } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
+import { getSiteBranding } from "@/lib/site-branding";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -126,6 +127,7 @@ function AdminNav(props: {
 export default async function AdminLayout(props: { children: React.ReactNode }) {
   const actor = await requireRole(["ADMIN", "ROOT"]);
   const isRoot = actor.roles.includes("ROOT");
+  const branding = await getSiteBranding();
 
   const counts: Counts = {
     pendingWithdrawals: 0,
@@ -155,15 +157,17 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
         <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r bg-white/70 px-4 py-5 backdrop-blur lg:block">
           <Link href="/" className="flex items-center gap-3 rounded-2xl px-2 py-2 hover:bg-secondary/40">
             <Image
-              src="/logo-godplaces-placeholder.svg"
-              alt="Logo de Godplaces."
+              src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+              alt={`Logo de ${branding.brandName}.`}
               width={34}
               height={34}
               priority
+              unoptimized
             />
             <div className="leading-tight">
               <div className="font-[var(--font-display)] text-lg tracking-tight text-brand-secondary">
-                Godplaces<span className="text-brand-primary">.</span>
+                {branding.brandName}
+                <span className="text-brand-primary">.</span>
               </div>
               <div className="text-xs text-muted-foreground">
                 Dashboard {isRoot ? "ROOT" : "ADMIN"}
@@ -187,15 +191,17 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
                   <SheetContent side="left" className="w-[320px] p-4">
                     <div className="flex items-center gap-3">
                       <Image
-                        src="/logo-godplaces-placeholder.svg"
-                        alt="Logo de Godplaces."
+                        src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+                        alt={`Logo de ${branding.brandName}.`}
                         width={34}
                         height={34}
                         priority
+                        unoptimized
                       />
                       <div className="leading-tight">
                         <div className="font-[var(--font-display)] text-lg tracking-tight text-brand-secondary">
-                          Godplaces<span className="text-brand-primary">.</span>
+                          {branding.brandName}
+                          <span className="text-brand-primary">.</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
                           Dashboard {isRoot ? "ROOT" : "ADMIN"}
@@ -221,4 +227,3 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
     </div>
   );
 }
-

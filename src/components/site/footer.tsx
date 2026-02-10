@@ -1,13 +1,15 @@
 import { Container } from "@/components/site/container";
 import Link from "next/link";
+import { getSiteBranding } from "@/lib/site-branding";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const branding = await getSiteBranding();
   return (
     <footer className="mt-16 border-t bg-white/70 backdrop-blur">
       <Container className="py-10">
         <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className="font-medium text-foreground">Godplaces.</span>{" "}
+            <span className="font-medium text-foreground">{branding.brandName}.</span>{" "}
             <span className="text-muted-foreground">
               Alquiler temporal en Venezuela.
             </span>

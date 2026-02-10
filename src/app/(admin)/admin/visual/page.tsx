@@ -4,13 +4,16 @@ import { requireRole } from "@/lib/auth/guards";
 import { dbDisponible, DB_MISSING_MESSAGE } from "@/lib/db";
 import { prisma } from "@/lib/prisma";
 import { HeroSlidesManager, type AdminHeroSlide } from "@/components/admin/hero-slides-manager";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = buildMetadata({ title: "Visual", path: "/admin/visual" });
 
 export default async function AdminVisualPage() {
-  await requireRole(["ADMIN", "ROOT"]);
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const isRoot = actor.roles.includes("ROOT");
 
   let slides: AdminHeroSlide[] = [];
   if (dbDisponible()) {
@@ -41,6 +44,18 @@ export default async function AdminVisualPage() {
         </p>
       </div>
 
+      {isRoot ? (
+        <div className="mt-6 rounded-2xl border bg-white/70 p-6 text-sm">
+          <div className="font-medium text-foreground">Cambios de marca</div>
+          <div className="mt-1 text-muted-foreground">
+            Para cambiar logo, nombre del agente y colores primario/secundario, usa el panel ROOT.
+          </div>
+          <Button asChild variant="outline" className="mt-4">
+            <Link href="/root/branding">Ir a /root/branding</Link>
+          </Button>
+        </div>
+      ) : null}
+
       {!dbDisponible() ? (
         <div className="mt-6 rounded-2xl border bg-white/70 p-8 text-sm text-muted-foreground">
           {DB_MISSING_MESSAGE}
@@ -53,4 +68,3 @@ export default async function AdminVisualPage() {
     </Container>
   );
 }
-

@@ -8,7 +8,12 @@ import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { HeroCarousel, type HeroSlidePublic } from "@/components/site/hero-carousel";
 
-export function HomeHero(props: { slides: HeroSlidePublic[] }) {
+export type HomeHeroBranding = {
+  brandName: string;
+  agentName: string;
+};
+
+export function HomeHero(props: { slides: HeroSlidePublic[]; branding: HomeHeroBranding }) {
   const god = useGod();
   const [texto, setTexto] = React.useState("");
 
@@ -27,11 +32,11 @@ export function HomeHero(props: { slides: HeroSlidePublic[] }) {
           </p>
 
           <h1 className="font-[var(--font-display)] text-4xl leading-[1.05] tracking-tight text-brand-secondary sm:text-6xl">
-            Hospédate mejor en Venezuela con <span className="text-brand-primary">Godplaces.</span>
+            Hospédate mejor en Venezuela con <span className="text-brand-primary">{props.branding.brandName}.</span>
           </h1>
 
           <p className="max-w-xl text-lg leading-8 text-muted-foreground">
-            Dinos en lenguaje natural cómo quieres hospedarte y God te guía sin inventar precios ni propiedades: siempre
+            Dinos en lenguaje natural cómo quieres hospedarte y {props.branding.agentName} te guía sin inventar precios ni propiedades: siempre
             consulta el catálogo real.
           </p>
 

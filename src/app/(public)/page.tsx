@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { dbDisponible, DB_MISSING_MESSAGE } from "@/lib/db";
+import { getSiteBranding } from "@/lib/site-branding";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export const metadata = buildMetadata({
 });
 
 export default async function HomePage() {
+  const branding = await getSiteBranding();
   const destacados = dbDisponible()
     ? await prisma.property.findMany({
         where: { status: "PUBLISHED" },
@@ -130,7 +132,7 @@ export default async function HomePage() {
               Publica y opera con control central
             </h2>
             <p className="mt-3 max-w-2xl text-white/85">
-              Godplaces. está diseñado para un catálogo aprobado y una operación con roles
+              {branding.brandName}. está diseñado para un catálogo aprobado y una operación con roles
               (ROOT/ADMIN/ALIADO/CLIENTE) y verificación manual.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">

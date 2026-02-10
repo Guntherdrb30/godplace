@@ -19,6 +19,7 @@ export function GodSheet(props: {
   onOpenChange: (v: boolean) => void;
   mensajeInicial: string | null;
   onConsumedMensajeInicial: () => void;
+  branding: { brandName: string; agentName: string };
 }) {
   const { open, onOpenChange, mensajeInicial, onConsumedMensajeInicial } = props;
   const [texto, setTexto] = React.useState("");
@@ -27,7 +28,7 @@ export function GodSheet(props: {
   const [msgs, setMsgs] = React.useState<Msg[]>([
     {
       role: "assistant",
-      content: "Soy God. En este MVP el chat es un placeholder. No invento propiedades ni precios: consulto el catálogo real.",
+      content: `Soy ${props.branding.agentName}. En este MVP el chat es un placeholder. No invento propiedades ni precios: consulto el catálogo real.`,
     },
   ]);
   const [cargandoSesion, setCargandoSesion] = React.useState(false);
@@ -75,7 +76,9 @@ export function GodSheet(props: {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>God — Asistente de Godplaces.</SheetTitle>
+          <SheetTitle>
+            {props.branding.agentName} — Asistente de {props.branding.brandName}.
+          </SheetTitle>
           <SheetDescription>Operado por Trends172Tech.com</SheetDescription>
         </SheetHeader>
 

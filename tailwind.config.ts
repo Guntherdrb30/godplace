@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
 
+const hslVar = (name: string) => `hsl(var(--${name}) / <alpha-value>)`;
+
 export default {
   darkMode: ["class"],
   content: [
@@ -12,15 +14,15 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: "#32B5AD",
-          secondary: "#004B57",
-          accent: "#32B5AD",
+          primary: hslVar("brand-primary"),
+          secondary: hslVar("brand-secondary"),
+          accent: hslVar("brand-accent"),
         },
         marca: {
-          turquesa: "#32B5AD",
-          petroleo: "#004B57",
+          turquesa: hslVar("marca-turquesa"),
+          petroleo: hslVar("marca-petroleo"),
           blanco: "#FFFFFF",
-          cta: "#32B5AD",
+          cta: hslVar("marca-cta"),
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -67,7 +69,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        suave: "0 20px 60px rgba(0, 75, 87, 0.12)",
+        suave: "0 20px 60px hsl(var(--marca-petroleo) / 0.12)",
       },
     },
   },

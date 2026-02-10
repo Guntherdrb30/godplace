@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useGod } from "@/components/ai/god-provider";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -14,12 +15,13 @@ async function crearSesion() {
 }
 
 export function HomeAiChat() {
+  const god = useGod();
   const [texto, setTexto] = React.useState("");
   const [msgs, setMsgs] = React.useState<Msg[]>([
     {
       role: "assistant",
       content:
-        "Soy God. Describe qué alojamiento buscas (ciudad, fechas, huéspedes, presupuesto, amenities) y te guío usando el catálogo real.",
+        `Soy ${god.branding.agentName}. Describe qué alojamiento buscas (ciudad, fechas, huéspedes, presupuesto, amenities) y te guío usando el catálogo real.`,
     },
   ]);
   const [conectando, setConectando] = React.useState(false);
@@ -119,4 +121,3 @@ export function HomeAiChat() {
     </section>
   );
 }
-

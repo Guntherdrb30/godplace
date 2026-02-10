@@ -9,6 +9,7 @@ export function GodReservaModal(props: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSubmit: (texto: string) => void;
+  agentName: string;
 }) {
   const { open, onOpenChange, onSubmit } = props;
   const [texto, setTexto] = React.useState("");
@@ -51,7 +52,7 @@ export function GodReservaModal(props: {
               Cancelar
             </Button>
             <Button type="submit" variant="brand">
-              Iniciar con God
+              Iniciar con {props.agentName || "God"}
             </Button>
           </div>
         </form>

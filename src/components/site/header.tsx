@@ -4,6 +4,7 @@ import { Container } from "@/components/site/container";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { getSiteBranding } from "@/lib/site-branding";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export async function SiteHeader() {
+  const branding = await getSiteBranding();
   const user = await getCurrentUser();
   const allyAccess =
     user?.allyProfileId && user.roles.includes("ALIADO")
@@ -34,14 +36,16 @@ export async function SiteHeader() {
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/logo-godplaces-placeholder.svg"
-              alt="Logo de Godplaces."
+              src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+              alt={`Logo de ${branding.brandName}.`}
               width={34}
               height={34}
               priority
+              unoptimized
             />
             <span className="font-[var(--font-display)] text-lg tracking-tight text-brand-secondary">
-              Godplaces<span className="text-brand-primary">.</span>
+              {branding.brandName}
+              <span className="text-brand-primary">.</span>
             </span>
           </Link>
           <nav aria-label="Navegación principal" className="hidden items-center gap-6 text-sm sm:flex">
