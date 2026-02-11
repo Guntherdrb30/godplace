@@ -150,11 +150,11 @@ export function AdminPropertyCreateForm() {
 
       if (failed > 0) {
         toast("Propiedad creada con advertencias.", {
-          description: `Imagenes cargadas: ${uploaded}. Fallidas: ${failed}.`,
+          description: `Imagenes cargadas: ${uploaded}. Fallidas: ${failed}. Ahora sube contrato en el editor.`,
         });
       } else {
         toast("Propiedad creada correctamente.", {
-          description: `Imagenes cargadas: ${uploaded}.`,
+          description: `Imagenes cargadas: ${uploaded}. Ahora sube contrato en el editor.`,
         });
       }
 
@@ -251,7 +251,8 @@ export function AdminPropertyCreateForm() {
 
         <div className="flex flex-col gap-3 rounded-2xl border bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            Primero se crea la propiedad y luego se suben las imagenes una por una para evitar errores por tamano.
+            Primero se crea la propiedad y luego se suben las imagenes una por una para evitar errores por tamano. En el
+            editor podras cargar el contrato de propiedad para validacion administrativa antes de publicar.
           </p>
           <Button variant="brand" type="submit" disabled={submitting}>
             {submitting ? "Creando..." : "Crear y continuar"}
