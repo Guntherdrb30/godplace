@@ -11,11 +11,19 @@ export function AdminPropertyContractUploader(props: {
   url: string | null;
   pathname: string | null;
 }) {
+  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // ~4MB seguro para evitar 413 del runtime.
   const [url, setUrl] = React.useState<string | null>(props.url);
   const [pathname, setPathname] = React.useState<string | null>(props.pathname);
   const [subiendo, setSubiendo] = React.useState(false);
 
   const subir = async (file: File) => {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast("Contrato demasiado grande.", {
+        description: "Usa un PDF o imagen menor a 4MB para evitar error 413.",
+      });
+      return;
+    }
+
     setSubiendo(true);
     try {
       const fd = new FormData();
@@ -24,9 +32,12 @@ export function AdminPropertyContractUploader(props: {
       fd.set("entityId", props.propertyId);
 
       const up = await fetch("/api/blob/upload", { method: "POST", body: fd });
-      const upData = await up.json().catch(() => ({}));
+      const isJson = (up.headers.get("content-type") || "").includes("application/json");
+      const upData = isJson ? await up.json().catch(() => ({})) : {};
       if (!up.ok) {
-        toast("No se pudo subir el contrato.", { description: upData?.message || "" });
+        const fallback =
+          up.status === 413 ? "Archivo demasiado grande para el servidor. Usa un archivo menor a 4MB." : "";
+        toast("No se pudo subir el contrato.", { description: upData?.message || fallback });
         return;
       }
 
@@ -126,4 +137,3 @@ export function AdminPropertyContractUploader(props: {
     </div>
   );
 }
-
