@@ -19,6 +19,7 @@ export function HeroCarousel(props: { slides: HeroSlidePublic[]; variant?: "card
   const slides = props.slides;
   const variant = props.variant ?? "card";
   const imageSizes = variant === "full" ? "100vw" : "(min-width: 1024px) 40vw, 100vw";
+  const isFull = variant === "full";
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
 
@@ -55,23 +56,40 @@ export function HeroCarousel(props: { slides: HeroSlidePublic[]; variant?: "card
     >
       <div
         className={
-          variant === "full"
-            ? "relative h-[56vh] min-h-[340px] max-h-[640px]"
+          isFull
+            ? "relative h-[64vh] min-h-[380px] max-h-[740px] sm:h-[68vh]"
             : "relative aspect-[4/3] sm:aspect-[16/11]"
         }
       >
         {current ? (
           <>
+            {isFull ? (
+              <Image
+                src={current.imageUrl}
+                alt=""
+                fill
+                priority
+                aria-hidden="true"
+                className="object-cover blur-md scale-105 opacity-55"
+                sizes={imageSizes}
+              />
+            ) : null}
             <Image
               src={current.imageUrl}
               alt={current.title || "Imagen destacada"}
               fill
               priority
-              className="object-cover"
+              className={isFull ? "object-contain" : "object-cover"}
               sizes={imageSizes}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(0,75,87,0.65),rgba(0,75,87,0.15)_55%,rgba(0,0,0,0.05))]" />
-            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+            <div
+              className={
+                isFull
+                  ? "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,75,87,0.16),rgba(0,75,87,0.08)_42%,rgba(0,75,87,0.72))]"
+                  : "absolute inset-0 bg-[linear-gradient(115deg,rgba(0,75,87,0.65),rgba(0,75,87,0.15)_55%,rgba(0,0,0,0.05))]"
+              }
+            />
+            <div className={isFull ? "absolute inset-x-0 bottom-0 p-6 sm:p-8" : "absolute inset-x-0 bottom-0 p-5 sm:p-6"}>
               <div className="max-w-[22rem] space-y-2">
                 {current.title ? (
                   <div className="font-[var(--font-display)] text-2xl tracking-tight text-white sm:text-3xl">
