@@ -3,24 +3,11 @@ import { del } from "@vercel/blob";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
+import { normalizeBlobPathname } from "@/lib/blob/shared";
 
 const schema = z.object({
   urlOrPathname: z.string().min(1),
 });
-
-function extractPathname(urlOrPathname: string): string {
-  const v = urlOrPathname.trim();
-  if (!v) return "";
-  if (v.startsWith("http://") || v.startsWith("https://")) {
-    try {
-      const u = new URL(v);
-      return u.pathname.replace(/^\/+/, "");
-    } catch {
-      return v.replace(/^\/+/, "");
-    }
-  }
-  return v.replace(/^\/+/, "");
-}
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
@@ -34,7 +21,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
   }
 
-  const pathname = extractPathname(parsed.data.urlOrPathname);
+  const pathname = normalizeBlobPathname(parsed.data.urlOrPathname);
   if (!pathname) {
     return NextResponse.json({ ok: false, message: "Pathname inválido." }, { status: 400 });
   }

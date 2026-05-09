@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth/guards";
 import { revalidatePath } from "next/cache";
 import { registrarAuditoria } from "@/lib/audit";
+import { findAvailabilityConflict } from "@/lib/booking-availability";
 import { formatMoney } from "@/lib/format";
 import type { BookingStatus } from "@prisma/client";
 import { labelBookingStatus } from "@/lib/labels";
@@ -23,6 +24,22 @@ async function actualizarEstado(formData: FormData) {
   if (!id) throw new Error("Falta id.");
   if (!["DRAFT", "CONFIRMED", "CANCELLED", "COMPLETED"].includes(status)) {
     throw new Error("Estado inválido.");
+  }
+
+  if (status === "CONFIRMED" || status === "COMPLETED") {
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      select: { id: true, propertyId: true, checkIn: true, checkOut: true },
+    });
+    if (!booking) throw new Error("Reserva no encontrada.");
+
+    const conflict = await findAvailabilityConflict(prisma, {
+      propertyId: booking.propertyId,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      ignoreBookingId: booking.id,
+    });
+    if (conflict) throw new Error(conflict.message);
   }
 
   await prisma.booking.update({ where: { id }, data: { status: status as BookingStatus } });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { findAvailabilityConflict } from "@/lib/booking-availability";
 import { prisma } from "@/lib/prisma";
 import { cotizarReserva } from "@/lib/pricing";
 import { getSiteBranding } from "@/lib/site-branding";
@@ -201,6 +202,14 @@ async function tool_quote_booking(args: unknown) {
     guests: parsed.data.guests,
   });
   if (quote.nights <= 0) throw new Error("Rango de fechas inválido.");
+
+  const conflict = await findAvailabilityConflict(prisma, {
+    propertyId: p.id,
+    checkIn,
+    checkOut,
+  });
+  if (conflict) throw new Error(conflict.message);
+
   return quote;
 }
 

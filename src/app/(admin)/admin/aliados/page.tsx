@@ -10,6 +10,7 @@ import { requireRole } from "@/lib/auth/guards";
 import { registrarAuditoria } from "@/lib/audit";
 import { labelAllyStatus, labelKycStatus } from "@/lib/labels";
 import { sendEmail } from "@/lib/email";
+import { buildProtectedBlobUrl } from "@/lib/blob/shared";
 
 export const dynamic = "force-dynamic";
 
@@ -182,7 +183,7 @@ export default async function AdminAliadosPage() {
                           <div className="truncate text-xs text-muted-foreground">{a.contract.pathname}</div>
                         </div>
                         <div className="flex gap-2">
-                          <a className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary" href={a.contract.url} target="_blank" rel="noreferrer">
+                          <a className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary" href={buildProtectedBlobUrl(a.contract.pathname)} target="_blank" rel="noreferrer">
                             Ver
                           </a>
                         </div>
@@ -224,4 +225,3 @@ export default async function AdminAliadosPage() {
     </Container>
   );
 }
-

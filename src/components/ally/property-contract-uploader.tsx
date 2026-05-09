@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { buildProtectedBlobUrl } from "@/lib/blob/shared";
+import { PROPERTY_CONTRACT_TERMS_VERSION } from "@/lib/legal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PROPERTY_CONTRACT_TERMS_VERSION } from "@/lib/legal";
 
 export function PropertyContractUploader(props: {
   propertyId: string;
@@ -15,6 +16,7 @@ export function PropertyContractUploader(props: {
   termsVersion: string | null;
   disabled?: boolean;
 }) {
+  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
   const [url, setUrl] = React.useState<string | null>(props.url);
   const [pathname, setPathname] = React.useState<string | null>(props.pathname);
   const [acceptedAt, setAcceptedAt] = React.useState<string | null>(props.acceptedAt);
@@ -27,8 +29,7 @@ export function PropertyContractUploader(props: {
   const acceptedRecorded = !!acceptedAt && termsVersion === PROPERTY_CONTRACT_TERMS_VERSION;
 
   const guardarAceptacion = async () => {
-    if (!accepted) return;
-    if (!url || !pathname) return;
+    if (!accepted || !url || !pathname) return;
     setSubiendo(true);
     try {
       const res = await fetch("/api/ally/property_contract/accept_terms", {
@@ -38,18 +39,25 @@ export function PropertyContractUploader(props: {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast("No se pudo guardar la aceptación.", { description: data?.message || "" });
+        toast("No se pudo guardar la aceptacion.", { description: data?.message || "" });
         return;
       }
       setAcceptedAt(data?.ownershipContractAcceptedAt || null);
       setTermsVersion(data?.ownershipContractTermsVersion || null);
-      toast("Aceptación guardada.");
+      toast("Aceptacion guardada.");
     } finally {
       setSubiendo(false);
     }
   };
 
   const subir = async (file: File) => {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast("Contrato demasiado grande.", {
+        description: "Usa un PDF o imagen menor a 4MB para evitar errores de subida.",
+      });
+      return;
+    }
+
     setSubiendo(true);
     try {
       const fd = new FormData();
@@ -76,7 +84,7 @@ export function PropertyContractUploader(props: {
       });
       const crData = await cr.json().catch(() => ({}));
       if (!cr.ok) {
-        toast("Se subió a Blob pero no se pudo registrar en la base de datos.", {
+        toast("Se subio a Blob pero no se pudo registrar en la base de datos.", {
           description: crData?.message || "",
         });
         return;
@@ -101,8 +109,7 @@ export function PropertyContractUploader(props: {
   };
 
   const eliminar = async () => {
-    const ok = confirm("¿Eliminar el contrato de propiedad?");
-    if (!ok) return;
+    if (!confirm("Eliminar el contrato de propiedad?")) return;
 
     const res = await fetch("/api/ally/property_contract/delete", {
       method: "POST",
@@ -145,26 +152,30 @@ export function PropertyContractUploader(props: {
             disabled={disabled}
           />
           <span className="leading-6">
-            Declaro que tengo autorización legal para publicar esta propiedad y{" "}
+            Declaro que tengo autorizacion legal para publicar esta propiedad y{" "}
             <a className="underline" href="/terminos" target="_blank" rel="noreferrer">
-              acepto los Términos y Condiciones
+              acepto los Terminos y Condiciones
             </a>{" "}
-            (versión {PROPERTY_CONTRACT_TERMS_VERSION}).
+            (version {PROPERTY_CONTRACT_TERMS_VERSION}).
           </span>
         </label>
         {!acceptedRecorded && url ? (
           <div className="mt-3 flex justify-end">
-            <Button type="button" variant="brand" size="sm" onClick={() => void guardarAceptacion()} disabled={disabled || !accepted}>
-              Guardar aceptación
+            <Button
+              type="button"
+              variant="brand"
+              size="sm"
+              onClick={() => void guardarAceptacion()}
+              disabled={disabled || !accepted}
+            >
+              Guardar aceptacion
             </Button>
           </div>
         ) : null}
         {acceptedAt ? (
           <div className="mt-2 text-xs text-muted-foreground">
             Aceptado:{" "}
-            <span className="font-medium text-foreground">
-              {new Date(acceptedAt).toLocaleString("es-VE")}
-            </span>
+            <span className="font-medium text-foreground">{new Date(acceptedAt).toLocaleString("es-VE")}</span>
           </div>
         ) : null}
       </div>
@@ -182,12 +193,14 @@ export function PropertyContractUploader(props: {
             e.currentTarget.value = "";
           }}
         />
-        <p className="text-xs text-muted-foreground">PDF o imagen. Es requisito para enviar la propiedad a revisión.</p>
+        <p className="text-xs text-muted-foreground">
+          PDF o imagen. Es requisito para enviar la propiedad a revision.
+        </p>
       </div>
 
-      {!url ? (
+      {!url || !pathname ? (
         <div className="rounded-2xl border bg-white/70 p-4 text-sm text-muted-foreground">
-          Aún no has subido el contrato de la propiedad.
+          Aun no has subido el contrato de la propiedad.
         </div>
       ) : (
         <div className="rounded-2xl border bg-white p-4">
@@ -196,7 +209,12 @@ export function PropertyContractUploader(props: {
               <div className="truncate text-xs text-muted-foreground">{pathname}</div>
             </div>
             <div className="flex gap-2">
-              <a className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary" href={url} target="_blank" rel="noreferrer">
+                <a
+                  className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary"
+                  href={buildProtectedBlobUrl(pathname)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                 Ver
               </a>
               <Button type="button" variant="outline" size="sm" onClick={() => void eliminar()} disabled={disabled}>

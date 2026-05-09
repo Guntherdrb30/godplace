@@ -2,6 +2,7 @@ import { Container } from "@/components/site/container";
 import { HomeHeroServer } from "@/components/site/home-hero.server";
 import { HomeAiChat } from "@/components/site/home-ai-chat";
 import { PropertyCard } from "@/components/site/property-card";
+import { TourUploadSection } from "@/components/tour3d/TourUploadSection";
 import { buildMetadata } from "@/lib/seo";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ export default async function HomePage() {
       <Container>
         <HomeHeroServer />
         <HomeAiChat />
+        <TourUploadSection />
 
         <section className="mt-14">
           <div className="flex items-end justify-between gap-4">

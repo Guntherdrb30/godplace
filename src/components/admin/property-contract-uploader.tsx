@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { buildProtectedBlobUrl } from "@/lib/blob/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +12,7 @@ export function AdminPropertyContractUploader(props: {
   url: string | null;
   pathname: string | null;
 }) {
-  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // ~4MB seguro para evitar 413 del runtime.
+  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
   const [url, setUrl] = React.useState<string | null>(props.url);
   const [pathname, setPathname] = React.useState<string | null>(props.pathname);
   const [subiendo, setSubiendo] = React.useState(false);
@@ -48,7 +49,7 @@ export function AdminPropertyContractUploader(props: {
       });
       const crData = await cr.json().catch(() => ({}));
       if (!cr.ok) {
-        toast("Se subió a Blob pero no se pudo registrar en la base de datos.", {
+        toast("Se subio a Blob pero no se pudo registrar en la base de datos.", {
           description: crData?.message || "",
         });
         return;
@@ -71,8 +72,7 @@ export function AdminPropertyContractUploader(props: {
   };
 
   const eliminar = async () => {
-    const ok = confirm("¿Eliminar el contrato de propiedad?");
-    if (!ok) return;
+    if (!confirm("Eliminar el contrato de propiedad?")) return;
 
     const res = await fetch("/api/admin/property_contract/delete", {
       method: "POST",
@@ -115,7 +115,7 @@ export function AdminPropertyContractUploader(props: {
         />
       </div>
 
-      {!url ? (
+      {!url || !pathname ? (
         <div className="rounded-2xl border bg-white/70 p-4 text-sm text-muted-foreground">No cargado.</div>
       ) : (
         <div className="rounded-2xl border bg-white p-4">
@@ -124,7 +124,12 @@ export function AdminPropertyContractUploader(props: {
               <div className="truncate text-xs text-muted-foreground">{pathname}</div>
             </div>
             <div className="flex gap-2">
-              <a className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary" href={url} target="_blank" rel="noreferrer">
+              <a
+                className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary"
+                href={buildProtectedBlobUrl(pathname)}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Ver
               </a>
               <Button type="button" variant="outline" size="sm" onClick={() => void eliminar()} disabled={subiendo}>

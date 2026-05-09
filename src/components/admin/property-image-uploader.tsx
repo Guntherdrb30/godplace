@@ -32,7 +32,6 @@ export function PropertyImageUploader(props: { propertyId: string; images: Img[]
     setSubiendo(true);
     try {
       for (const file of aSubir) {
-        // eslint-disable-next-line no-await-in-loop
         await subirUna(file);
       }
     } finally {

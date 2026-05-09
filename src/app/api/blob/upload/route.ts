@@ -3,9 +3,11 @@ import { put } from "@vercel/blob";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/prisma";
+import { BLOB_FOLDERS, isSensitiveBlobFolder } from "@/lib/blob/shared";
+import { encryptSensitiveFile } from "@/lib/blob/sensitive";
 
 const metaSchema = z.object({
-  folder: z.enum(["properties", "property_contracts", "kyc", "ally_contracts", "site"]),
+  folder: z.enum(BLOB_FOLDERS),
   entityId: z.string().min(1),
 });
 
@@ -84,18 +86,20 @@ export async function POST(req: Request) {
 
     const safeName = (file.name || "archivo").replace(/[^a-zA-Z0-9._-]/g, "_");
     const pathname = `${meta.data.folder}/${meta.data.entityId}/${safeName}`;
+    const sensitive = isSensitiveBlobFolder(folderKey);
+    const body = sensitive ? await encryptSensitiveFile(file) : file;
 
-    const res = await put(pathname, file, {
+    const res = await put(pathname, body, {
       access: "public",
       addRandomSuffix: true,
-      contentType: file.type || undefined,
+      contentType: sensitive ? "application/octet-stream" : file.type || undefined,
     });
 
     return NextResponse.json({
       ok: true,
       url: res.url,
       pathname: res.pathname,
-      contentType: res.contentType,
+      contentType: file.type || res.contentType,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "No se pudo procesar el archivo.";

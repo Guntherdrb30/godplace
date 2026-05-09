@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import { toast } from "sonner";
+import { buildProtectedBlobUrl, isBlobImagePathname } from "@/lib/blob/shared";
+import { labelKycStatus } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { labelKycStatus } from "@/lib/labels";
 
 type KycDoc = {
   id: string;
@@ -19,18 +19,26 @@ type KycDoc = {
 };
 
 const TIPOS: Array<{ value: KycDoc["type"]; label: string }> = [
-  { value: "CEDULA", label: "Cédula" },
+  { value: "CEDULA", label: "Cedula" },
   { value: "RIF", label: "RIF" },
-  { value: "SELFIE_CEDULA", label: "Selfie con cédula" },
+  { value: "SELFIE_CEDULA", label: "Selfie con cedula" },
   { value: "PROPIEDAD_O_PODER", label: "Documento de propiedad o poder" },
 ];
 
 export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }) {
+  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
   const [docs, setDocs] = React.useState<KycDoc[]>(props.docs);
   const [tipo, setTipo] = React.useState<KycDoc["type"]>("CEDULA");
   const [subiendo, setSubiendo] = React.useState(false);
 
   const subir = async (file: File) => {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast("Documento demasiado grande.", {
+        description: "Usa un PDF o imagen menor a 4MB para evitar errores de subida.",
+      });
+      return;
+    }
+
     setSubiendo(true);
     try {
       const fd = new FormData();
@@ -56,15 +64,15 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
       });
       const crData = await cr.json().catch(() => ({}));
       if (!cr.ok) {
-        toast("Se subió a Blob pero no se pudo registrar en la base de datos.", {
+        toast("Se subio a Blob pero no se pudo registrar en la base de datos.", {
           description: crData?.message || "",
         });
         return;
       }
 
-      toast("Documento cargado. Queda pendiente de revisión.");
-      setDocs((d) => [
-        ...d,
+      toast("Documento cargado. Queda pendiente de revision.");
+      setDocs((current) => [
+        ...current,
         {
           id: crData.id,
           type: tipo,
@@ -81,14 +89,13 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
   };
 
   const eliminar = async (id: string) => {
-    const doc = docs.find((d) => d.id === id);
+    const doc = docs.find((item) => item.id === id);
     if (!doc) return;
     if (doc.status !== "PENDING") {
       toast("Solo puedes eliminar documentos pendientes.");
       return;
     }
-    const ok = confirm("¿Eliminar este documento?");
-    if (!ok) return;
+    if (!confirm("Eliminar este documento?")) return;
 
     const res = await fetch("/api/ally/kyc_documents/delete", {
       method: "POST",
@@ -100,6 +107,7 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
       toast("No se pudo eliminar.", { description: data?.message || "" });
       return;
     }
+
     if (data?.pathname) {
       await fetch("/api/blob/delete", {
         method: "POST",
@@ -107,7 +115,8 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
         body: JSON.stringify({ urlOrPathname: data.pathname }),
       }).catch(() => {});
     }
-    setDocs((d) => d.filter((x) => x.id !== id));
+
+    setDocs((current) => current.filter((item) => item.id !== id));
     toast("Documento eliminado.");
   };
 
@@ -123,9 +132,9 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
               value={tipo}
               onChange={(e) => setTipo(e.target.value as KycDoc["type"])}
             >
-              {TIPOS.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
+              {TIPOS.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
                 </option>
               ))}
             </select>
@@ -146,48 +155,58 @@ export function AllyKycUploader(props: { allyProfileId: string; docs: KycDoc[] }
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Se sube a Vercel Blob. En MVP, los blobs son públicos por URL; evita compartir enlaces. TODO: URLs
-          firmadas/privadas.
+          Los documentos se almacenan cifrados y solo pueden abrirse desde una sesion autorizada.
         </p>
       </div>
 
       <div className="grid gap-4">
         {docs.length === 0 ? (
           <div className="rounded-2xl border bg-white/70 p-6 text-sm text-muted-foreground">
-            Aún no has subido documentos.
+            Aun no has subido documentos.
           </div>
         ) : (
           docs
             .slice()
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-            .map((d) => (
-              <div key={d.id} className="rounded-2xl border bg-white/85 p-4">
+            .map((doc) => (
+              <div key={doc.id} className="rounded-2xl border bg-white/85 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <div className="font-medium text-foreground">{TIPOS.find((t) => t.value === d.type)?.label || d.type}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Estado: <span className="font-medium text-foreground">{labelKycStatus(d.status)}</span>
+                    <div className="font-medium text-foreground">
+                      {TIPOS.find((item) => item.value === doc.type)?.label || doc.type}
                     </div>
-                    {d.notasAdmin ? <div className="mt-2 text-xs text-muted-foreground">Nota admin: {d.notasAdmin}</div> : null}
-                    <div className="mt-2 truncate text-xs text-muted-foreground">{d.pathname}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Estado: <span className="font-medium text-foreground">{labelKycStatus(doc.status)}</span>
+                    </div>
+                    {doc.notasAdmin ? (
+                      <div className="mt-2 text-xs text-muted-foreground">Nota admin: {doc.notasAdmin}</div>
+                    ) : null}
+                    <div className="mt-2 truncate text-xs text-muted-foreground">{doc.pathname}</div>
                   </div>
                   <div className="flex gap-2">
                     <a
                       className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary"
-                      href={d.url}
+                      href={buildProtectedBlobUrl(doc.pathname)}
                       target="_blank"
                       rel="noreferrer"
                     >
                       Ver
                     </a>
-                    <Button type="button" variant="outline" onClick={() => void eliminar(d.id)}>
+                    <Button type="button" variant="outline" onClick={() => void eliminar(doc.id)}>
                       Eliminar
                     </Button>
                   </div>
                 </div>
-                {d.url.match(/\.(png|jpg|jpeg|webp|gif)$/i) ? (
-                  <div className="mt-3 relative aspect-[16/9] overflow-hidden rounded-xl border bg-secondary/40">
-                    <Image src={d.url} alt="Vista previa" fill className="object-cover" />
+                {isBlobImagePathname(doc.pathname) ? (
+                  <div className="mt-3 aspect-[16/9] overflow-hidden rounded-xl border bg-secondary/40">
+                    {/* next/image no aplica bien aqui porque la previsualizacion depende de cookies de sesion. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={buildProtectedBlobUrl(doc.pathname)}
+                      alt="Vista previa"
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
                   </div>
                 ) : null}
               </div>

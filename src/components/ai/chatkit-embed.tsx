@@ -14,7 +14,6 @@ function clamp01(n: number) {
 }
 
 function hslToHex(h: number, s: number, l: number) {
-  // h: 0..360, s/l: 0..100
   const hh = ((h % 360) + 360) % 360;
   const ss = clamp01(s / 100);
   const ll = clamp01(l / 100);
@@ -33,9 +32,9 @@ function hslToHex(h: number, s: number, l: number) {
   else if (hh < 300) [r, g, b] = [x, 0, c];
   else [r, g, b] = [c, 0, x];
 
-  const toHex = (v: number) => {
-    const n = Math.round((v + m) * 255);
-    return n.toString(16).padStart(2, "0");
+  const toHex = (value: number) => {
+    const normalized = Math.round((value + m) * 255);
+    return normalized.toString(16).padStart(2, "0");
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -47,15 +46,15 @@ function hslTokenToHex(token: string) {
   const h = Number(parts[0]);
   const s = Number(parts[1].replace("%", ""));
   const l = Number(parts[2].replace("%", ""));
-  if (![h, s, l].every((n) => Number.isFinite(n))) return "#0ea5a5";
+  if (![h, s, l].every((value) => Number.isFinite(value))) return "#0ea5a5";
   return hslToHex(h, s, l);
 }
 
 async function getClientSecret() {
   const res = await fetch("/api/chatkit/session", { method: "POST" });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message || "No se pudo crear la sesión.");
-  if (!data?.client_secret) throw new Error("Respuesta inválida del servidor.");
+  if (!res.ok) throw new Error(data?.message || "No se pudo crear la sesion.");
+  if (!data?.client_secret) throw new Error("Respuesta invalida del servidor.");
   return String(data.client_secret);
 }
 
@@ -69,24 +68,29 @@ export function ChatKitEmbed(props: {
   mensajeInicial?: string | null;
   onConsumedMensajeInicial?: () => void;
 }) {
+  const { branding, className, mensajeInicial, onConsumedMensajeInicial } = props;
   const elRef = React.useRef<ChatKitElement | null>(null);
+
+  const setElementRef = React.useCallback((node: HTMLElement | null) => {
+    elRef.current = node as ChatKitElement | null;
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;
+
     async function init() {
       if (typeof window === "undefined") return;
       await customElements.whenDefined("openai-chatkit");
       if (cancelled) return;
+
       const el = elRef.current;
       if (!el) return;
 
-      const accent = hslTokenToHex(props.branding.colors.primaryHsl);
+      const accent = hslTokenToHex(branding.colors.primaryHsl);
 
       el.setOptions({
         locale: "es-ES",
-        api: {
-          getClientSecret,
-        },
+        api: { getClientSecret },
         theme: {
           colorScheme: "light",
           color: {
@@ -99,40 +103,41 @@ export function ChatKitEmbed(props: {
           density: "compact",
         },
         startScreen: {
-          greeting: `Hola, soy ${props.branding.agentName}. ¿Qué alojamiento buscas hoy?`,
+          greeting: `Hola, soy ${branding.agentName}. Que alojamiento buscas hoy?`,
           prompts: [
             "Apartamento para 4 en la playa",
             "Casa con piscina para fin de semana",
-            "Cabaña romántica 2 personas",
+            "Cabana romantica 2 personas",
           ],
         },
         composer: {
-          placeholder: `Describe tu búsqueda (ciudad, fechas, huéspedes, presupuesto)…`,
+          placeholder: "Describe tu busqueda (ciudad, fechas, huespedes, presupuesto)...",
         },
       });
     }
 
-    init().catch((e) => {
+    init().catch((error) => {
       toast("No se pudo iniciar el asistente.", {
-        description: e instanceof Error ? e.message : "",
+        description: error instanceof Error ? error.message : "",
       });
     });
 
     return () => {
       cancelled = true;
     };
-  }, [props.branding.agentName, props.branding.brandName, props.branding.colors.primaryHsl]);
+  }, [branding.agentName, branding.colors.primaryHsl]);
 
   React.useEffect(() => {
-    const msg = props.mensajeInicial?.trim();
+    const msg = mensajeInicial?.trim();
     if (!msg) return;
+
     const el = elRef.current;
     if (!el?.setComposerValue) return;
+
     el.setComposerValue({ text: msg });
     el.focusComposer?.();
-    props.onConsumedMensajeInicial?.();
-  }, [props.mensajeInicial, props.onConsumedMensajeInicial]);
+    onConsumedMensajeInicial?.();
+  }, [mensajeInicial, onConsumedMensajeInicial]);
 
-  const OpenAIChatKit = "openai-chatkit" as any;
-  return <OpenAIChatKit ref={elRef as any} className={props.className} />;
+  return <openai-chatkit ref={setElementRef} className={className} />;
 }

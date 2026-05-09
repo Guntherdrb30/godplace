@@ -3,6 +3,33 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 
 export const runtime = "nodejs";
 
+type ChatKitSessionRequest = {
+  currentClientSecret?: string;
+};
+
+type ChatKitSessionPayload = {
+  user: string;
+  workflow: {
+    id: string;
+    version?: string;
+  };
+};
+
+type ChatKitSessionApiResponse = {
+  client_secret?: {
+    value?: string;
+  };
+};
+
+function parseRequestBody(input: unknown): ChatKitSessionRequest {
+  if (!input || typeof input !== "object") return {};
+  const currentClientSecret =
+    typeof (input as { currentClientSecret?: unknown }).currentClientSecret === "string"
+      ? String((input as { currentClientSecret: string }).currentClientSecret)
+      : undefined;
+  return { currentClientSecret };
+}
+
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) {
@@ -10,7 +37,7 @@ export async function POST(req: Request) {
       {
         ok: false,
         reason: "auth_required",
-        message: "Necesitas iniciar sesión para usar el asistente.",
+        message: "Necesitas iniciar sesion para usar el asistente.",
       },
       { status: 401 },
     );
@@ -21,36 +48,23 @@ export async function POST(req: Request) {
   const workflowVersion = process.env.CHATKIT_WORKFLOW_VERSION?.trim();
 
   if (!apiKey) {
-    return NextResponse.json(
-      { ok: false, message: "Falta OPENAI_API_KEY en el servidor." },
-      { status: 500 },
-    );
+    return NextResponse.json({ ok: false, message: "Falta OPENAI_API_KEY en el servidor." }, { status: 500 });
   }
   if (!workflowId) {
-    return NextResponse.json(
-      { ok: false, message: "Falta CHATKIT_WORKFLOW_ID en el servidor." },
-      { status: 500 },
-    );
+    return NextResponse.json({ ok: false, message: "Falta CHATKIT_WORKFLOW_ID en el servidor." }, { status: 500 });
   }
 
-  const input = await req.json().catch(() => ({} as unknown));
-  const currentClientSecret =
-    typeof (input as any)?.currentClientSecret === "string"
-      ? String((input as any).currentClientSecret)
-      : null;
-
-  // ChatKit se encarga del thread/historial; cuando expire el client_secret,
-  // pedirá uno nuevo. Si recibimos uno anterior, generamos una sesión nueva.
-  // (Mantener continuidad depende de la configuración interna de ChatKit.)
+  const input = parseRequestBody(await req.json().catch(() => null));
+  const currentClientSecret = input.currentClientSecret ?? null;
   void currentClientSecret;
 
-  const body: any = {
+  const payload: ChatKitSessionPayload = {
     user: user.id,
     workflow: {
       id: workflowId,
+      ...(workflowVersion ? { version: workflowVersion } : {}),
     },
   };
-  if (workflowVersion) body.workflow.version = workflowVersion;
 
   const res = await fetch("https://api.openai.com/v1/chatkit/sessions", {
     method: "POST",
@@ -59,15 +73,15 @@ export async function POST(req: Request) {
       "Content-Type": "application/json",
       "OpenAI-Beta": "chatkit_beta=v1",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   });
 
-  const data = await res.json().catch(() => null);
+  const data = (await res.json().catch(() => null)) as ChatKitSessionApiResponse | Record<string, unknown> | null;
   if (!res.ok) {
     return NextResponse.json(
       {
         ok: false,
-        message: "No se pudo crear la sesión de ChatKit.",
+        message: "No se pudo crear la sesion de ChatKit.",
         status: res.status,
         detail: data,
       },
@@ -75,14 +89,17 @@ export async function POST(req: Request) {
     );
   }
 
-  const clientSecret = (data as any)?.client_secret?.value;
-  if (!clientSecret) {
+  const clientSecret =
+    data && "client_secret" in data && data.client_secret && typeof data.client_secret === "object"
+      ? (data.client_secret as { value?: unknown }).value
+      : null;
+
+  if (typeof clientSecret !== "string" || !clientSecret) {
     return NextResponse.json(
-      { ok: false, message: "Respuesta inválida: falta client_secret." },
+      { ok: false, message: "Respuesta invalida: falta client_secret." },
       { status: 500 },
     );
   }
 
   return NextResponse.json({ ok: true, client_secret: clientSecret });
 }
-

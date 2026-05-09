@@ -10,24 +10,22 @@ import { requireRole } from "@/lib/auth/guards";
 import { registrarAuditoria } from "@/lib/audit";
 import type { AllyStatus, KycStatus } from "@prisma/client";
 import { labelAllyStatus, labelKycStatus } from "@/lib/labels";
+import { buildProtectedBlobUrl } from "@/lib/blob/shared";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = buildMetadata({ title: "KYC", path: "/admin/kyc" });
 
-async function actualizarDoc(formData: FormData) {
-  "use server";
+async function actualizarDocConEstado(status: KycStatus, formData: FormData) {
   const actor = await requireRole(["ADMIN", "ROOT"]);
 
-  const id = String(formData.get("id") || "");
-  const status = String(formData.get("status") || "");
+  const id = String(formData.get("id") || "").trim();
   const notasAdmin = String(formData.get("notasAdmin") || "").trim() || null;
   if (!id) throw new Error("Falta id.");
-  if (!["PENDING", "APPROVED", "REJECTED"].includes(status)) throw new Error("Estado inválido.");
 
   await prisma.kycDocument.update({
     where: { id },
-    data: { status: status as KycStatus, notasAdmin },
+    data: { status, notasAdmin },
   });
 
   await registrarAuditoria({
@@ -41,21 +39,31 @@ async function actualizarDoc(formData: FormData) {
   revalidatePath("/admin/kyc");
 }
 
-async function actualizarPerfil(formData: FormData) {
+async function actualizarDocPendiente(formData: FormData) {
   "use server";
+  return actualizarDocConEstado("PENDING", formData);
+}
+
+async function actualizarDocAprobado(formData: FormData) {
+  "use server";
+  return actualizarDocConEstado("APPROVED", formData);
+}
+
+async function actualizarDocRechazado(formData: FormData) {
+  "use server";
+  return actualizarDocConEstado("REJECTED", formData);
+}
+
+async function actualizarPerfilConEstado(status: AllyStatus, formData: FormData) {
   const actor = await requireRole(["ADMIN", "ROOT"]);
 
-  const id = String(formData.get("id") || "");
-  const status = String(formData.get("status") || "");
+  const id = String(formData.get("id") || "").trim();
   const notasAdmin = String(formData.get("notasAdmin") || "").trim() || null;
   if (!id) throw new Error("Falta id.");
-  if (!["PENDING_KYC", "KYC_APPROVED", "KYC_REJECTED", "SUSPENDED"].includes(status)) {
-    throw new Error("Estado inválido.");
-  }
 
   await prisma.allyProfile.update({
     where: { id },
-    data: { status: status as AllyStatus, notasAdmin },
+    data: { status, notasAdmin },
   });
 
   await registrarAuditoria({
@@ -67,6 +75,26 @@ async function actualizarPerfil(formData: FormData) {
   });
 
   revalidatePath("/admin/kyc");
+}
+
+async function actualizarPerfilPendiente(formData: FormData) {
+  "use server";
+  return actualizarPerfilConEstado("PENDING_KYC", formData);
+}
+
+async function actualizarPerfilAprobado(formData: FormData) {
+  "use server";
+  return actualizarPerfilConEstado("KYC_APPROVED", formData);
+}
+
+async function actualizarPerfilRechazado(formData: FormData) {
+  "use server";
+  return actualizarPerfilConEstado("KYC_REJECTED", formData);
+}
+
+async function actualizarPerfilSuspendido(formData: FormData) {
+  "use server";
+  return actualizarPerfilConEstado("SUSPENDED", formData);
 }
 
 export default async function AdminKycPage() {
@@ -109,26 +137,31 @@ export default async function AdminKycPage() {
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <form action={actualizarPerfil} className="grid gap-3 rounded-2xl border bg-white p-4">
-                  <input type="hidden" name="id" value={a.id} />
+                <CardContent className="space-y-6">
+                  <form
+                    action={actualizarPerfilPendiente}
+                    className="grid gap-3 rounded-2xl border bg-white p-4"
+                  >
+                    <input type="hidden" name="id" value={a.id} />
                   <div className="grid gap-2">
                     <Label htmlFor={`perfil-${a.id}`}>Notas (perfil)</Label>
                     <Textarea id={`perfil-${a.id}`} name="notasAdmin" defaultValue={a.notasAdmin || ""} rows={3} />
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {[
-                      "PENDING_KYC",
-                      "KYC_APPROVED",
-                      "KYC_REJECTED",
-                      "SUSPENDED",
-                    ].map((s) => (
-                      <Button key={s} name="status" value={s} type="submit" variant="outline">
-                        {labelAllyStatus(s as AllyStatus)}
+                    {(
+                      [
+                        { s: "PENDING_KYC", action: actualizarPerfilPendiente },
+                        { s: "KYC_APPROVED", action: actualizarPerfilAprobado },
+                        { s: "KYC_REJECTED", action: actualizarPerfilRechazado },
+                        { s: "SUSPENDED", action: actualizarPerfilSuspendido },
+                      ] as const
+                    ).map(({ s, action }) => (
+                      <Button key={s} type="submit" variant="outline" formAction={action}>
+                        {labelAllyStatus(s)}
                       </Button>
                     ))}
-                  </div>
-                </form>
+                    </div>
+                  </form>
 
                 <div className="space-y-4">
                   <div className="text-sm font-medium">Documentos</div>
@@ -153,7 +186,7 @@ export default async function AdminKycPage() {
                           <div className="flex gap-2">
                             <a
                               className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary"
-                              href={d.url}
+                              href={buildProtectedBlobUrl(d.pathname)}
                               target="_blank"
                               rel="noreferrer"
                             >
@@ -162,7 +195,7 @@ export default async function AdminKycPage() {
                           </div>
                         </div>
 
-                        <form action={actualizarDoc} className="mt-3 grid gap-3">
+                        <form action={actualizarDocPendiente} className="mt-3 grid gap-3">
                           <input type="hidden" name="id" value={d.id} />
                           <div className="grid gap-2">
                             <Label htmlFor={`doc-${d.id}`}>Notas (documento)</Label>
@@ -174,9 +207,15 @@ export default async function AdminKycPage() {
                             />
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            {["PENDING", "APPROVED", "REJECTED"].map((s) => (
-                              <Button key={s} name="status" value={s} type="submit" variant="outline">
-                                {labelKycStatus(s as KycStatus)}
+                            {(
+                              [
+                                { s: "PENDING", action: actualizarDocPendiente },
+                                { s: "APPROVED", action: actualizarDocAprobado },
+                                { s: "REJECTED", action: actualizarDocRechazado },
+                              ] as const
+                            ).map(({ s, action }) => (
+                              <Button key={s} type="submit" variant="outline" formAction={action}>
+                                {labelKycStatus(s)}
                               </Button>
                             ))}
                           </div>

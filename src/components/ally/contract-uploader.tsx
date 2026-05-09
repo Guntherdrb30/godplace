@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { buildProtectedBlobUrl } from "@/lib/blob/shared";
+import { labelKycStatus } from "@/lib/labels";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { labelKycStatus } from "@/lib/labels";
 
 type AllyContract = {
   id: string;
@@ -20,10 +21,18 @@ export function AllyContractUploader(props: {
   allyProfileId: string;
   contract: AllyContract | null;
 }) {
-  const [c, setC] = React.useState<AllyContract | null>(props.contract);
+  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+  const [contract, setContract] = React.useState<AllyContract | null>(props.contract);
   const [subiendo, setSubiendo] = React.useState(false);
 
   const subir = async (file: File) => {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast("Contrato demasiado grande.", {
+        description: "Usa un PDF o imagen menor a 4MB para evitar errores de subida.",
+      });
+      return;
+    }
+
     setSubiendo(true);
     try {
       const fd = new FormData();
@@ -45,13 +54,12 @@ export function AllyContractUploader(props: {
       });
       const crData = await cr.json().catch(() => ({}));
       if (!cr.ok) {
-        toast("Se subió a Blob pero no se pudo registrar en la base de datos.", {
+        toast("Se subio a Blob pero no se pudo registrar en la base de datos.", {
           description: crData?.message || "",
         });
         return;
       }
 
-      // Best-effort: eliminar el blob anterior si existía.
       if (crData?.prevPathname) {
         await fetch("/api/blob/delete", {
           method: "POST",
@@ -60,8 +68,8 @@ export function AllyContractUploader(props: {
         }).catch(() => {});
       }
 
-      toast("Contrato cargado. Queda pendiente de revisión.");
-      setC({
+      toast("Contrato cargado. Queda pendiente de revision.");
+      setContract({
         id: crData.id,
         status: "PENDING",
         url: upData.url,
@@ -74,18 +82,17 @@ export function AllyContractUploader(props: {
   };
 
   const eliminar = async () => {
-    if (!c) return;
-    if (c.status !== "PENDING") {
+    if (!contract) return;
+    if (contract.status !== "PENDING") {
       toast("Solo puedes eliminar contratos pendientes.");
       return;
     }
-    const ok = confirm("¿Eliminar el contrato cargado?");
-    if (!ok) return;
+    if (!confirm("Eliminar el contrato cargado?")) return;
 
     const res = await fetch("/api/ally/contract/delete", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: c.id }),
+      body: JSON.stringify({ id: contract.id }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -101,7 +108,7 @@ export function AllyContractUploader(props: {
       }).catch(() => {});
     }
 
-    setC(null);
+    setContract(null);
     toast("Contrato eliminado.");
   };
 
@@ -114,7 +121,7 @@ export function AllyContractUploader(props: {
             id="contract"
             type="file"
             accept="application/pdf,image/*"
-            disabled={subiendo || c?.status === "APPROVED"}
+            disabled={subiendo || contract?.status === "APPROVED"}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) void subir(file);
@@ -122,14 +129,14 @@ export function AllyContractUploader(props: {
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Formatos sugeridos: PDF o imagen. Luego de subir el contrato firmado, queda en revisión por Godplaces.
+            Formatos sugeridos: PDF o imagen. Luego de subir el contrato firmado, queda en revision por Godplaces.
           </p>
         </div>
       </div>
 
-      {!c ? (
+      {!contract ? (
         <div className="rounded-2xl border bg-white/70 p-6 text-sm text-muted-foreground">
-          Aún no has subido tu contrato firmado.
+          Aun no has subido tu contrato firmado.
         </div>
       ) : (
         <div className="rounded-2xl border bg-white p-4">
@@ -137,17 +144,30 @@ export function AllyContractUploader(props: {
             <div className="min-w-0">
               <div className="text-sm text-muted-foreground">
                 Estado:{" "}
-                <Badge variant={c.status === "APPROVED" ? "default" : c.status === "REJECTED" ? "destructive" : "secondary"}>
-                  {labelKycStatus(c.status)}
+                <Badge
+                  variant={
+                    contract.status === "APPROVED"
+                      ? "default"
+                      : contract.status === "REJECTED"
+                        ? "destructive"
+                        : "secondary"
+                  }
+                >
+                  {labelKycStatus(contract.status)}
                 </Badge>
               </div>
-              {c.notasAdmin ? (
-                <div className="mt-2 text-xs text-muted-foreground">Nota admin: {c.notasAdmin}</div>
+              {contract.notasAdmin ? (
+                <div className="mt-2 text-xs text-muted-foreground">Nota admin: {contract.notasAdmin}</div>
               ) : null}
-              <div className="mt-2 truncate text-xs text-muted-foreground">{c.pathname}</div>
+              <div className="mt-2 truncate text-xs text-muted-foreground">{contract.pathname}</div>
             </div>
             <div className="flex gap-2">
-              <a className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary" href={c.url} target="_blank" rel="noreferrer">
+              <a
+                className="inline-flex h-9 items-center rounded-md border bg-white px-3 text-sm hover:bg-secondary"
+                href={buildProtectedBlobUrl(contract.pathname)}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Ver
               </a>
               <Button type="button" variant="outline" onClick={() => void eliminar()}>
@@ -160,4 +180,3 @@ export function AllyContractUploader(props: {
     </div>
   );
 }
-
