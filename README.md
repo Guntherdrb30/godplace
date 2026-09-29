@@ -1,6 +1,6 @@
-# Godplaces.
+# METRORA
 
-Plataforma de alquiler temporal tipo Airbnb para Venezuela, operada por una empresa central.
+Plataforma PropTech SaaS multiempresa + marketplace inmobiliario para Venezuela. METRORA conecta inmobiliarias, agentes y clientes para venta, alquiler temporal, alquiler residencial y alquiler comercial, con CRM, IA y recorridos 3D.
 
 Desarrollado y operado por Trends172Tech.com.
 
@@ -20,7 +20,7 @@ Desarrollado y operado por Trends172Tech.com.
 - `ROOT`: control absoluto + capa crítica (usuarios críticos, settings globales, integraciones, seguridad)
   - El primer `ROOT` se crea solo por seed inicial.
   - Luego, solo `ROOT` puede crear más `ROOT`/`ADMIN` desde `/root/usuarios`.
-- `ADMIN`: operación completa (catálogo, reservas, reportes, KYC)
+- `ADMIN`: operación del tenant/inmobiliaria (propiedades, listings, CRM, reservas, agentes, propietarios, identidad, reportes, KYC)
 - `ALIADO`: registro, KYC, carga de propiedades (publicación requiere aprobación)
 - `CLIENTE`: explora y reserva
 
@@ -84,10 +84,10 @@ Abrir `http://localhost:3000`.
    - `npm run vercel-build` corre `prisma migrate deploy` automáticamente si existe `prisma/migrations` y `DATABASE_URL`.
    - Para correr el seed una sola vez, define `RUN_SEED=1` temporalmente en Vercel y redeploy; luego elimínala.
 
-## IA: asistente “God” (MVP)
+## IA: METRORA AI
 
 - UI obligatoria implementada:
-  - Burbuja flotante abajo a la derecha con etiqueta “God” (abre un panel lateral).
+  - Burbuja flotante abajo a la derecha con etiqueta “METRORA AI” (abre un panel lateral).
   - En Home: búsqueda en lenguaje natural + CTA “Buscar con Inteligencia Artificial”.
   - Modal en Home: “Reservar con IA” (inicia con God).
 - Backend:
@@ -101,7 +101,7 @@ Abrir `http://localhost:3000`.
 
 Importante:
 - El MVP no integra ChatKit embebido ni OpenAI todavía. Está preparada la arquitectura para function calling.
-- God no debe inventar propiedades ni precios: siempre consultar backend (tools).
+- METRORA AI no debe inventar propiedades ni precios: siempre consultar backend (tools).
 
 ## Vercel Blob (imágenes y documentos)
 
@@ -129,7 +129,7 @@ Rutas UI:
 
 Variables de entorno nuevas:
 - `FINANCE_EMAIL`: destinatario de notificaciones de retiros.
-- `EMAIL_FROM`: remitente (ej: `Godplaces <no-reply@tudominio.com>`).
+- `EMAIL_FROM`: remitente (ej: `METRORA <no-reply@tudominio.com>`).
 - `RESEND_API_KEY`: API key de Resend (opcional en MVP; si falta, se loguea un TODO server-side).
 
 Notas de seguridad:
