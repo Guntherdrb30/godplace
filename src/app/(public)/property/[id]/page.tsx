@@ -6,6 +6,8 @@ import { buildMetadata } from "@/lib/seo";
 import { BookingWidget } from "@/components/site/booking-widget";
 import { Badge } from "@/components/ui/badge";
 import { MarketplaceLeadForm } from "@/components/site/marketplace-lead-form";
+import { formatMoney } from "@/lib/format";
+import { listingOperationLabel, listingPriceSuffix } from "@/lib/listings";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +25,13 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
   });
 }
 
-export default async function PropertyPage(props: { params: Promise<{ id: string }> }) {
+export default async function PropertyPage(props: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await props.params;
+  const sp = await props.searchParams;
+  const requestedListingId = typeof sp.listing === "string" ? sp.listing : null;
   const p = await prisma.property.findUnique({
     where: { id },
     include: {
@@ -48,6 +55,11 @@ export default async function PropertyPage(props: { params: Promise<{ id: string
   if (!p || p.status !== "PUBLISHED" || p.tenant.status !== "ACTIVE") notFound();
 
   const hero = p.images[0]?.url || "/placeholder-propiedad.svg";
+  const selectedListing =
+    (requestedListingId ? p.listings.find((listing) => listing.id === requestedListingId) : null) ||
+    p.listings[0] ||
+    null;
+  const shortRentListing = p.listings.find((listing) => listing.operationType === "SHORT_RENT") || null;
 
   return (
     <Container className="py-10">
@@ -55,11 +67,24 @@ export default async function PropertyPage(props: { params: Promise<{ id: string
         <div className="space-y-8">
           <div className="space-y-3">
             <h1 className="font-[var(--font-display)] text-4xl tracking-tight">
-              {p.titulo}
+              {selectedListing?.title || p.titulo}
             </h1>
             <div className="text-sm text-muted-foreground">
               {p.ciudad}, {p.estadoRegion}
             </div>
+            {selectedListing ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{listingOperationLabel(selectedListing.operationType)}</Badge>
+                <span className="text-2xl font-semibold text-foreground">
+                  {formatMoney(selectedListing.priceCents, selectedListing.currency)}
+                  {listingPriceSuffix(selectedListing.operationType) ? (
+                    <span className="ml-1 text-sm font-normal text-muted-foreground">
+                      {listingPriceSuffix(selectedListing.operationType)}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
+            ) : null}
           </div>
 
           <div className="overflow-hidden rounded-3xl border bg-secondary/30">
@@ -131,12 +156,15 @@ export default async function PropertyPage(props: { params: Promise<{ id: string
             agencyName={p.tenant.name}
             listings={p.listings}
           />
-          <BookingWidget
-            propertyId={p.id}
-            maxGuests={p.huespedesMax}
-            currency={p.currency}
-            pricePerNightCents={p.pricePerNightCents}
-          />
+          {shortRentListing ? (
+            <BookingWidget
+              propertyId={p.id}
+              listingId={shortRentListing.id}
+              maxGuests={p.huespedesMax}
+              currency={shortRentListing.currency}
+              pricePerNightCents={shortRentListing.priceCents}
+            />
+          ) : null}
           <p className="text-xs text-muted-foreground">
             Publicado en METRORA por {p.tenant.name}. Inventario:{" "}
             {p.allyProfile.isInternal ? "interno" : "aliado externo"}.
