@@ -11,6 +11,7 @@ import { findAvailabilityConflict } from "@/lib/booking-availability";
 import { formatMoney } from "@/lib/format";
 import type { BookingStatus } from "@prisma/client";
 import { labelBookingStatus } from "@/lib/labels";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export const metadata = buildMetadata({ title: "Reservas", path: "/admin/reserva
 async function actualizarEstado(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const id = String(formData.get("id") || "");
   const status = String(formData.get("status") || "");
   if (!id) throw new Error("Falta id.");
@@ -27,8 +29,8 @@ async function actualizarEstado(formData: FormData) {
   }
 
   if (status === "CONFIRMED" || status === "COMPLETED") {
-    const booking = await prisma.booking.findUnique({
-      where: { id },
+    const booking = await prisma.booking.findFirst({
+      where: { id, tenantId },
       select: { id: true, propertyId: true, checkIn: true, checkOut: true },
     });
     if (!booking) throw new Error("Reserva no encontrada.");
@@ -42,8 +44,15 @@ async function actualizarEstado(formData: FormData) {
     if (conflict) throw new Error(conflict.message);
   }
 
+  const bookingInTenant = await prisma.booking.findFirst({
+    where: { id, tenantId },
+    select: { id: true },
+  });
+  if (!bookingInTenant) throw new Error("Reserva no encontrada.");
+
   await prisma.booking.update({ where: { id }, data: { status: status as BookingStatus } });
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "booking.update_status",
     entidadTipo: "booking",
@@ -54,7 +63,11 @@ async function actualizarEstado(formData: FormData) {
 }
 
 export default async function AdminReservasPage() {
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
+
   const bookings = await prisma.booking.findMany({
+    where: { tenantId },
     include: { property: true, user: true },
     orderBy: { createdAt: "desc" },
     take: 200,
