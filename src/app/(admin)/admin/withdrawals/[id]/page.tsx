@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/format";
 import { AdminWithdrawalActions } from "@/components/admin/withdrawal-actions";
 import type { WithdrawalStatus } from "@prisma/client";
+import { requireRole } from "@/lib/auth/guards";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +42,11 @@ function badgeVariant(s: WithdrawalStatus): "default" | "secondary" | "destructi
 }
 
 export default async function AdminWithdrawalDetailPage(props: { params: Promise<{ id: string }> }) {
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const { id } = await props.params;
-  const w = await prisma.withdrawalRequest.findUnique({
-    where: { id },
+  const w = await prisma.withdrawalRequest.findFirst({
+    where: { id, allyProfile: { tenantId } },
     include: {
       allyProfile: { include: { user: true } },
       requestedBy: true,
