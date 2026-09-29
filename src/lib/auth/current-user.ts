@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { COOKIE_SESSION } from "./constants";
 import { hashTokenSesion } from "./crypto";
 import { dbDisponible } from "@/lib/db";
+import { COOKIE_ACTIVE_TENANT } from "@/lib/tenancy/cookies";
 
 export type CurrentUser = {
   id: string;
@@ -49,7 +50,11 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   const roles = session.user.roles.map((ur) => ur.role.code);
   const memberships = session.user.tenantMemberships.filter((m) => m.tenant.status === "ACTIVE");
+  const requestedTenantId = jar.get(COOKIE_ACTIVE_TENANT)?.value || null;
   const activeMembership =
+    (requestedTenantId
+      ? memberships.find((m) => m.tenantId === requestedTenantId)
+      : null) ||
     memberships.find((m) => m.tenant.isDefault) ||
     memberships[0] ||
     null;
