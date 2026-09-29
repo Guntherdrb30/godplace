@@ -11,10 +11,13 @@ const schema = z.object({
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getCurrentUser();
   const isStaff = !!actor && (actor.roles.includes("ADMIN") || actor.roles.includes("ROOT"));
-  if (!isStaff) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
+  const tenantId = actor?.tenantId ?? null;
+  if (!isStaff || !tenantId) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
 
   const { id } = await ctx.params;
-  const w = await prisma.withdrawalRequest.findUnique({ where: { id } });
+  const w = await prisma.withdrawalRequest.findFirst({
+    where: { id, allyProfile: { tenantId } },
+  });
   if (!w) return NextResponse.json({ ok: false, message: "No existe." }, { status: 404 });
   if (!["PENDING", "APPROVED"].includes(w.status)) {
     return NextResponse.json({ ok: false, message: "No puedes rechazar en este estado." }, { status: 400 });
@@ -37,6 +40,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "withdrawal_request.reject",
     entidadTipo: "withdrawal_request",
