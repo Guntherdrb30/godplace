@@ -10,8 +10,7 @@ import { requireRole } from "@/lib/auth/guards";
 import { hashPassword } from "@/lib/auth/password";
 import { revalidatePath } from "next/cache";
 import { registrarAuditoria } from "@/lib/audit";
-import type { UserStatus } from "@prisma/client";
-import { labelUserStatus } from "@/lib/labels";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -20,18 +19,27 @@ export const metadata = buildMetadata({ title: "Usuarios", path: "/admin/usuario
 async function toggleEstado(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const userId = String(formData.get("userId") || "");
-  const status = String(formData.get("status") || "");
+  const isActive = String(formData.get("isActive") || "") === "1";
   if (!userId) throw new Error("Falta userId.");
-  if (!["ACTIVE", "SUSPENDED"].includes(status)) throw new Error("Estado inválido.");
 
-  await prisma.user.update({ where: { id: userId }, data: { status: status as UserStatus } });
+  const membership = await prisma.tenantMembership.findUnique({
+    where: { tenantId_userId: { tenantId, userId } },
+  });
+  if (!membership) throw new Error("Usuario no pertenece al tenant activo.");
+
+  await prisma.tenantMembership.update({
+    where: { tenantId_userId: { tenantId, userId } },
+    data: { isActive },
+  });
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
-    accion: "user.update_status",
-    entidadTipo: "user",
-    entidadId: userId,
-    metadata: { status },
+    accion: "tenant_membership.update_status",
+    entidadTipo: "tenant_membership",
+    entidadId: membership.id,
+    metadata: { userId, isActive },
   });
   revalidatePath("/admin/usuarios");
 }
@@ -39,14 +47,21 @@ async function toggleEstado(formData: FormData) {
 async function resetPassword(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const userId = String(formData.get("userId") || "");
   const newPassword = String(formData.get("newPassword") || "");
   if (!userId) throw new Error("Falta userId.");
   if (newPassword.length < 8) throw new Error("Contraseña demasiado corta (mínimo 8).");
 
+  const membership = await prisma.tenantMembership.findUnique({
+    where: { tenantId_userId: { tenantId, userId } },
+  });
+  if (!membership) throw new Error("Usuario no pertenece al tenant activo.");
+
   const passwordHash = await hashPassword(newPassword);
   await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "user.reset_password",
     entidadTipo: "user",
@@ -56,11 +71,19 @@ async function resetPassword(formData: FormData) {
 }
 
 export default async function AdminUsuariosPage() {
-  const users = await prisma.user.findMany({
-    include: { roles: { include: { role: true } } },
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
+
+  const memberships = await prisma.tenantMembership.findMany({
+    where: { tenantId },
+    include: { user: { include: { roles: { include: { role: true } } } } },
     orderBy: { createdAt: "desc" },
     take: 200,
   });
+  const users = memberships.map((membership) => ({
+    ...membership.user,
+    membership,
+  }));
 
   return (
     <Container>
@@ -89,24 +112,24 @@ export default async function AdminUsuariosPage() {
                 <TableRow key={u.id}>
                   <TableCell className="font-medium">{u.email}</TableCell>
                   <TableCell>{u.nombre || "-"}</TableCell>
-                  <TableCell>{labelUserStatus(u.status)}</TableCell>
+                  <TableCell>{u.membership.isActive ? "Activo" : "Suspendido en esta inmobiliaria"}</TableCell>
                   <TableCell>{u.roles.map((r) => r.role.code).join(", ") || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex flex-col items-end gap-2">
                       <form action={toggleEstado} className="flex gap-2">
                         <input type="hidden" name="userId" value={u.id} />
-                        {u.status !== "SUSPENDED" ? (
+                        {u.membership.isActive ? (
                           <>
-                            <input type="hidden" name="status" value="SUSPENDED" />
+                            <input type="hidden" name="isActive" value="0" />
                             <Button type="submit" variant="outline" size="sm">
-                              Suspender
+                              Suspender en tenant
                             </Button>
                           </>
                         ) : (
                           <>
-                            <input type="hidden" name="status" value="ACTIVE" />
+                            <input type="hidden" name="isActive" value="1" />
                             <Button type="submit" variant="outline" size="sm">
-                              Activar
+                              Activar en tenant
                             </Button>
                           </>
                         )}
