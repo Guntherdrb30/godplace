@@ -36,7 +36,15 @@ async function ensureInternalAllyProfileId(tenantId: string) {
   });
   if (existing) return existing.id;
 
-  const email = (process.env.SEED_INTERNAL_EMAIL || "inventario@trends172tech.com").toLowerCase().trim();
+  const tenant = await prisma.tenant.findUniqueOrThrow({
+    where: { id: tenantId },
+    select: { slug: true, isDefault: true },
+  });
+
+  const safeSlug = tenant.slug.replace(/[^a-z0-9-]/gi, "-").toLowerCase();
+  const email = tenant.isDefault
+    ? (process.env.SEED_INTERNAL_EMAIL || "inventario@trends172tech.com").toLowerCase().trim()
+    : `inventario+${safeSlug}@trends172tech.com`;
   const rawPassword = crypto.randomBytes(18).toString("base64url");
   const passwordHash = await bcrypt.hash(rawPassword, 12);
 
@@ -49,8 +57,13 @@ async function ensureInternalAllyProfileId(tenantId: string) {
 
   const internalUser = await prisma.user.upsert({
     where: { email },
-    update: { nombre: "Inventario interno", passwordHash, status: "ACTIVE" },
-    create: { email, nombre: "Inventario interno", passwordHash, status: "ACTIVE" },
+    update: { nombre: `Inventario interno · ${tenant.slug}`, passwordHash, status: "ACTIVE" },
+    create: {
+      email,
+      nombre: `Inventario interno · ${tenant.slug}`,
+      passwordHash,
+      status: "ACTIVE",
+    },
     select: { id: true },
   });
 
@@ -60,17 +73,24 @@ async function ensureInternalAllyProfileId(tenantId: string) {
     create: { userId: internalUser.id, roleId: aliadoRole.id },
   });
 
-  const internalProfile = await prisma.allyProfile.upsert({
-    where: { userId: internalUser.id },
-    update: { tenantId, isInternal: true, status: "KYC_APPROVED" },
-    create: { tenantId, userId: internalUser.id, isInternal: true, status: "KYC_APPROVED" },
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId, userId: internalUser.id } },
+    update: { role: "MEMBER", isActive: true },
+    create: { tenantId, userId: internalUser.id, role: "MEMBER", isActive: true },
+  });
+
+  const internalProfile = await prisma.allyProfile.create({
+    data: {
+      tenantId,
+      userId: internalUser.id,
+      isInternal: true,
+      status: "KYC_APPROVED",
+    },
     select: { id: true },
   });
 
-  await prisma.allyWallet.upsert({
-    where: { allyProfileId: internalProfile.id },
-    update: {},
-    create: { allyProfileId: internalProfile.id },
+  await prisma.allyWallet.create({
+    data: { allyProfileId: internalProfile.id },
   });
 
   return internalProfile.id;
