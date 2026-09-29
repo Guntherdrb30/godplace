@@ -27,10 +27,15 @@ export function MarketplaceLeadForm(props: {
   propertyId: string;
   agencyName: string;
   listings: ListingOption[];
+  initialListingId?: string | null;
 }) {
   const [loading, setLoading] = React.useState(false);
   const [sent, setSent] = React.useState(false);
-  const [listingId, setListingId] = React.useState(props.listings[0]?.id || "");
+  const [listingId, setListingId] = React.useState(
+    props.initialListingId && props.listings.some((listing) => listing.id === props.initialListingId)
+      ? props.initialListingId
+      : props.listings[0]?.id || "",
+  );
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
