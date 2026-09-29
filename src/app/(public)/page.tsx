@@ -27,7 +27,7 @@ export default async function HomePage() {
           property: { status: "PUBLISHED" },
         },
         include: {
-          tenant: { select: { name: true } },
+          tenant: { select: { name: true, logoUrl: true } },
           property: {
             include: { images: { orderBy: { orden: "asc" }, take: 1 } },
           },
@@ -83,6 +83,7 @@ export default async function HomePage() {
                   operationType={p.operationType}
                   imageUrl={p.property.images[0]?.url ?? null}
                   agencyName={p.tenant.name}
+                  agencyLogoUrl={p.tenant.logoUrl}
                 />
               ))}
             </div>
