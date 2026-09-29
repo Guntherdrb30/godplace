@@ -14,6 +14,7 @@ import { labelPropertyStatus } from "@/lib/labels";
 import { VenezuelaStateCitySelect } from "@/components/venezuela/state-city-select";
 import { isAllyFullyApproved } from "@/lib/ally/approval";
 import type { PropertyOperationType } from "@prisma/client";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,7 @@ function buildDireccion(input: {
 async function crearPropiedadAliado(formData: FormData) {
   "use server";
   const user = await requireRole(["ALIADO"]);
+  const tenantId = requireTenantId(user);
   if (!user.allyProfileId) throw new Error("No tienes perfil de aliado.");
 
   const ok = await isAllyFullyApproved(user.allyProfileId);
@@ -65,6 +67,7 @@ async function crearPropiedadAliado(formData: FormData) {
 
   const p = await prisma.property.create({
     data: {
+      tenantId,
       allyProfileId: user.allyProfileId,
       titulo,
       descripcion,
@@ -84,6 +87,7 @@ async function crearPropiedadAliado(formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "ally_property.create_draft",
     entidadTipo: "property",
@@ -96,6 +100,7 @@ async function crearPropiedadAliado(formData: FormData) {
 
 export default async function AliadoPropiedadesPage() {
   const user = await requireRole(["ALIADO"]);
+  const tenantId = requireTenantId(user);
   if (!user.allyProfileId) {
     return (
       <Container className="py-12">
@@ -108,7 +113,7 @@ export default async function AliadoPropiedadesPage() {
 
   const [props, approved] = await Promise.all([
     prisma.property.findMany({
-      where: { allyProfileId: user.allyProfileId },
+      where: { tenantId, allyProfileId: user.allyProfileId },
       orderBy: { updatedAt: "desc" },
       take: 100,
     }),
