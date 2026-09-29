@@ -211,6 +211,14 @@ model Tenant {
   slug      String       @unique
   name      String
   legalName String?
+  logoUrl   String?
+  logoPathname String?
+  primaryHsl String?
+  secondaryHsl String?
+  contactEmail String?
+  contactPhone String?
+  contactWhatsapp String?
+  websiteUrl String?
   status    TenantStatus @default(ACTIVE)
   isDefault Boolean      @default(false)
   createdAt DateTime     @default(now())
