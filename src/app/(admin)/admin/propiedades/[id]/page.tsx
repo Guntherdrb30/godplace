@@ -17,6 +17,7 @@ import { labelPropertyStatus } from "@/lib/labels";
 import type { PropertyStatus } from "@prisma/client";
 import { sendEmail } from "@/lib/email";
 import { VenezuelaStateCitySelect } from "@/components/venezuela/state-city-select";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export const metadata = buildMetadata({ title: "Editar propiedad", path: "/admin
 async function actualizarPropiedad(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
 
   const id = String(formData.get("id") || "").trim();
   const titulo = String(formData.get("titulo") || "").trim();
@@ -48,6 +50,12 @@ async function actualizarPropiedad(formData: FormData) {
   if (maxGuests < 1) throw new Error("Huéspedes máx. inválido.");
   if (habitaciones < 1 || camas < 1 || banos < 1) throw new Error("Habitaciones/camas/baños inválidos.");
 
+  const propertyInTenant = await prisma.property.findFirst({
+    where: { id, tenantId },
+    select: { id: true },
+  });
+  if (!propertyInTenant) throw new Error("Propiedad no encontrada.");
+
   await prisma.property.update({
     where: { id },
     data: {
@@ -69,6 +77,7 @@ async function actualizarPropiedad(formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "property.update",
     entidadTipo: "property",
@@ -82,6 +91,7 @@ async function actualizarPropiedad(formData: FormData) {
 async function setStatus(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
 
   const id = String(formData.get("id") || "");
   const status = String(formData.get("status") || "");
@@ -93,8 +103,8 @@ async function setStatus(formData: FormData) {
       throw new Error("Estado inválido.");
     }
 
-    const p = await prisma.property.findUnique({
-      where: { id },
+    const p = await prisma.property.findFirst({
+      where: { id, tenantId },
       include: { allyProfile: { include: { user: true } }, images: true },
     });
     if (!p) throw new Error("No existe la propiedad.");
@@ -113,6 +123,7 @@ async function setStatus(formData: FormData) {
     });
 
     await registrarAuditoria({
+      tenantId,
       actorUserId: actor.id,
       accion: "property.update_status",
       entidadTipo: "property",
@@ -158,13 +169,14 @@ export default async function AdminPropiedadEditPage(props: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
-  await requireRole(["ADMIN", "ROOT"]);
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const { id } = await props.params;
   const search = await props.searchParams;
   const errorMsg = typeof search.error === "string" && search.error.trim() ? search.error.trim() : null;
 
-  const p = await prisma.property.findUnique({
-    where: { id },
+  const p = await prisma.property.findFirst({
+    where: { id, tenantId },
     include: { images: { orderBy: { orden: "asc" } }, allyProfile: { include: { user: true } } },
   });
   if (!p) notFound();
