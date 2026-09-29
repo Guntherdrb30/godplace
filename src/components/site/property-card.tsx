@@ -15,6 +15,7 @@ export function PropertyCard(props: {
   listingId: string;
   imageUrl?: string | null;
   agencyName?: string | null;
+  agencyLogoUrl?: string | null;
 }) {
   return (
     <Link href={`/property/${props.id}?listing=${props.listingId}`} className="group block focus-visible:rounded-2xl">
@@ -33,7 +34,19 @@ export function PropertyCard(props: {
             {props.ciudad}, {props.estadoRegion}
           </div>
           {props.agencyName ? (
-            <div className="text-xs text-muted-foreground">Por {props.agencyName}</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {props.agencyLogoUrl ? (
+                <Image
+                  src={props.agencyLogoUrl}
+                  alt={`Logo de ${props.agencyName}`}
+                  width={20}
+                  height={20}
+                  className="rounded-md object-contain"
+                  unoptimized
+                />
+              ) : null}
+              <span>Por {props.agencyName}</span>
+            </div>
           ) : null}
         </CardHeader>
         <CardContent className="pt-0">
