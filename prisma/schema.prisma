@@ -58,6 +58,81 @@ enum PropertyOperationType {
   SALE
 }
 
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  TOWNHOUSE
+  LAND
+  OFFICE
+  COMMERCIAL
+  WAREHOUSE
+  BUILDING
+  FARM
+  HOTEL
+  VACATION
+  OTHER
+}
+
+enum ListingOperationType {
+  SALE
+  SHORT_RENT
+  LONG_RENT
+  COMMERCIAL_RENT
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  PAUSED
+  RESERVED
+  CLOSED
+  ARCHIVED
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  VISIT_SCHEDULED
+  VISIT_COMPLETED
+  OFFER
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum VisitStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum DealStage {
+  OPEN
+  OFFER
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum OfferStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  EXPIRED
+}
+
 enum BookingStatus {
   DRAFT
   CONFIRMED
@@ -105,6 +180,8 @@ model User {
   withdrawalsCreated WithdrawalRequest[] @relation("WithdrawalRequestedBy")
   withdrawalsReviewed WithdrawalRequest[] @relation("WithdrawalReviewedBy")
   tenantMemberships TenantMembership[]
+  agentProfiles AgentProfile[]
+  ownerProfiles OwnerProfile[]
 }
 
 model Role {
@@ -144,6 +221,14 @@ model Tenant {
   properties   Property[]
   bookings     Booking[]
   auditLogs    AuditLog[]
+  branches     Branch[]
+  agentProfiles AgentProfile[]
+  ownerProfiles OwnerProfile[]
+  listings     Listing[]
+  leads        Lead[]
+  visits       Visit[]
+  deals        Deal[]
+  offers       Offer[]
 
   @@index([status])
   @@index([isDefault])
@@ -165,6 +250,81 @@ model TenantMembership {
   @@index([userId])
   @@index([role])
   @@index([isActive])
+}
+
+model Branch {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  slug        String
+  city        String?
+  region      String?
+  address     String?
+  phone       String?
+  email       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  agents AgentProfile[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+}
+
+model AgentProfile {
+  id            String   @id @default(cuid())
+  tenantId      String
+  userId        String
+  branchId      String?
+  displayName   String?
+  phone         String?
+  licenseNumber String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  properties Property[] @relation("PropertyAssignedAgent")
+  listings   Listing[]
+  leads      Lead[]
+  visits     Visit[]
+  deals      Deal[]
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@index([branchId])
+}
+
+model OwnerProfile {
+  id          String   @id @default(cuid())
+  tenantId    String
+  userId      String?
+  displayName String
+  companyName String?
+  email       String?
+  phone       String?
+  idNumber    String?
+  isActive    Boolean  @default(true)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  properties Property[]
+  deals      Deal[]
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@index([email])
+  @@index([phone])
 }
 
 model Session {
@@ -351,6 +511,9 @@ model Property {
   status        PropertyStatus @default(DRAFT)
 
   operationType PropertyOperationType @default(RENT)
+  propertyType  PropertyType @default(OTHER)
+  ownerProfileId String?
+  assignedAgentProfileId String?
 
   titulo        String
   descripcion   String
@@ -381,6 +544,12 @@ model Property {
 
   tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   allyProfile   AllyProfile @relation(fields: [allyProfileId], references: [id], onDelete: Restrict)
+  ownerProfile  OwnerProfile? @relation(fields: [ownerProfileId], references: [id], onDelete: SetNull)
+  assignedAgent AgentProfile? @relation("PropertyAssignedAgent", fields: [assignedAgentProfileId], references: [id], onDelete: SetNull)
+  listings      Listing[]
+  leads         Lead[]
+  visits        Visit[]
+  deals         Deal[]
   images        PropertyImage[]
   amenities     PropertyAmenity[]
   availability  Availability[]
@@ -391,6 +560,152 @@ model Property {
   @@index([status])
   @@index([ciudad])
   @@index([allyProfileId])
+  @@index([ownerProfileId])
+  @@index([assignedAgentProfileId])
+  @@index([propertyType])
+}
+
+model Listing {
+  id                     String               @id @default(cuid())
+  tenantId               String
+  propertyId             String
+  assignedAgentProfileId String?
+  operationType          ListingOperationType
+  status                 ListingStatus        @default(DRAFT)
+  title                  String
+  description            String?
+  priceCents             Int
+  currency               String               @default("USD")
+  publishedAt            DateTime?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  assignedAgent AgentProfile? @relation(fields: [assignedAgentProfileId], references: [id], onDelete: SetNull)
+  leads         Lead[]
+  deals         Deal[]
+
+  @@unique([propertyId, operationType])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([propertyId])
+  @@index([assignedAgentProfileId])
+  @@index([operationType])
+}
+
+model Lead {
+  id                     String       @id @default(cuid())
+  tenantId               String
+  listingId              String?
+  propertyId             String?
+  assignedAgentProfileId String?
+  name                   String
+  email                  String?
+  phone                  String?
+  source                 String?
+  stage                  LeadStage    @default(NEW)
+  priority               LeadPriority @default(MEDIUM)
+  budgetCents            Int?
+  currency               String       @default("USD")
+  notes                  String?
+  lastContactAt          DateTime?
+  nextActionAt           DateTime?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  listing       Listing?      @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  property      Property?     @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  assignedAgent AgentProfile? @relation(fields: [assignedAgentProfileId], references: [id], onDelete: SetNull)
+  visits        Visit[]
+  deals         Deal[]
+
+  @@index([tenantId])
+  @@index([tenantId, stage])
+  @@index([listingId])
+  @@index([propertyId])
+  @@index([assignedAgentProfileId])
+  @@index([email])
+  @@index([phone])
+}
+
+model Visit {
+  id             String      @id @default(cuid())
+  tenantId       String
+  leadId         String
+  propertyId     String
+  agentProfileId String?
+  scheduledAt    DateTime
+  status         VisitStatus @default(SCHEDULED)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead   Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  agentProfile AgentProfile? @relation(fields: [agentProfileId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, scheduledAt])
+  @@index([leadId])
+  @@index([propertyId])
+  @@index([agentProfileId])
+}
+
+model Deal {
+  id             String    @id @default(cuid())
+  tenantId       String
+  leadId         String?
+  propertyId     String
+  listingId      String?
+  agentProfileId String?
+  ownerProfileId String?
+  stage          DealStage @default(OPEN)
+  expectedAmountCents Int?
+  currency       String    @default("USD")
+  closedAt       DateTime?
+  lostReason     String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead Lead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  listing Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  agentProfile AgentProfile? @relation(fields: [agentProfileId], references: [id], onDelete: SetNull)
+  ownerProfile OwnerProfile? @relation(fields: [ownerProfileId], references: [id], onDelete: SetNull)
+  offers Offer[]
+
+  @@index([tenantId])
+  @@index([tenantId, stage])
+  @@index([leadId])
+  @@index([propertyId])
+  @@index([listingId])
+  @@index([agentProfileId])
+  @@index([ownerProfileId])
+}
+
+model Offer {
+  id          String      @id @default(cuid())
+  tenantId    String
+  dealId      String
+  amountCents Int
+  currency    String      @default("USD")
+  status      OfferStatus @default(DRAFT)
+  terms       String?
+  expiresAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([dealId])
 }
 
 model PropertyImage {
