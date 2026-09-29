@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import type { ListingOperationType, PropertyType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +21,12 @@ export default async function SearchPage(props: {
   const ciudad = typeof sp.ciudad === "string" ? sp.ciudad.trim() : "";
   const operation =
     typeof sp.operacion === "string" && ["SALE","SHORT_RENT","LONG_RENT","COMMERCIAL_RENT"].includes(sp.operacion)
-      ? sp.operacion
-      : "";
-  const propertyType = typeof sp.tipo === "string" ? sp.tipo : "";
+      ? (sp.operacion as ListingOperationType)
+      : null;
+  const propertyType =
+    typeof sp.tipo === "string" && ["HOUSE","APARTMENT","TOWNHOUSE","LAND","OFFICE","COMMERCIAL","WAREHOUSE","BUILDING","FARM","HOTEL","VACATION","OTHER"].includes(sp.tipo)
+      ? (sp.tipo as PropertyType)
+      : null;
 
   const items = await prisma.listing.findMany({
     where: {
@@ -31,9 +35,9 @@ export default async function SearchPage(props: {
       property: {
         status: "PUBLISHED",
         ...(ciudad ? { ciudad: { contains: ciudad, mode: "insensitive" } } : {}),
-        ...(propertyType ? { propertyType: propertyType as never } : {}),
+        ...(propertyType ? { propertyType } : {}),
       },
-      ...(operation ? { operationType: operation as never } : {}),
+      ...(operation ? { operationType: operation } : {}),
     },
     include: {
       tenant: { select: { name: true } },
@@ -64,7 +68,7 @@ export default async function SearchPage(props: {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="operacion">Operación</Label>
-            <select id="operacion" name="operacion" defaultValue={operation} className="h-10 rounded-md border bg-white px-3 text-sm">
+            <select id="operacion" name="operacion" defaultValue={operation || ""} className="h-10 rounded-md border bg-white px-3 text-sm">
               <option value="">Todas</option>
               <option value="SALE">Venta</option>
               <option value="SHORT_RENT">Alquiler temporal</option>
@@ -74,7 +78,7 @@ export default async function SearchPage(props: {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="tipo">Tipo</Label>
-            <select id="tipo" name="tipo" defaultValue={propertyType} className="h-10 rounded-md border bg-white px-3 text-sm">
+            <select id="tipo" name="tipo" defaultValue={propertyType || ""} className="h-10 rounded-md border bg-white px-3 text-sm">
               <option value="">Todos</option>
               <option value="HOUSE">Casa</option>
               <option value="APARTMENT">Apartamento</option>
