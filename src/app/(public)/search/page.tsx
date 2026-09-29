@@ -40,7 +40,7 @@ export default async function SearchPage(props: {
       ...(operation ? { operationType: operation } : {}),
     },
     include: {
-      tenant: { select: { name: true } },
+      tenant: { select: { name: true, logoUrl: true } },
       property: {
         include: { images: { orderBy: { orden: "asc" }, take: 1 } },
       },
@@ -120,6 +120,7 @@ export default async function SearchPage(props: {
                 operationType={listing.operationType}
                 imageUrl={listing.property.images[0]?.url ?? null}
                 agencyName={listing.tenant.name}
+                agencyLogoUrl={listing.tenant.logoUrl}
               />
             ))}
           </div>
