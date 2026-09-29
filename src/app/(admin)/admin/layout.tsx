@@ -94,6 +94,7 @@ function AdminNav(props: {
         </div>
         <div className="mt-2 space-y-1">
           <NavLink href="/admin/usuarios" label="Usuarios" />
+          <NavLink href="/admin/identidad" label="Identidad" />
           <NavLink href="/admin/visual" label="Visual" />
         </div>
       </div>
@@ -163,7 +164,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
         <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r bg-white/70 px-4 py-5 backdrop-blur lg:block">
           <Link href="/" className="flex items-center gap-3 rounded-2xl px-2 py-2 hover:bg-secondary/40">
             <Image
-              src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+              src={branding.logoUrl || "/metrora-mark.svg"}
               alt={`Logo de ${branding.brandName}.`}
               width={34}
               height={34}
@@ -197,7 +198,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
                   <SheetContent side="left" className="w-[320px] p-4">
                     <div className="flex items-center gap-3">
                       <Image
-                        src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+                        src={branding.logoUrl || "/metrora-mark.svg"}
                         alt={`Logo de ${branding.brandName}.`}
                         width={34}
                         height={34}
