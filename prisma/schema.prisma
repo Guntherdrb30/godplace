@@ -14,6 +14,18 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum TenantMembershipRole {
+  OWNER
+  ADMIN
+  AGENT
+  MEMBER
+}
+
 enum KycStatus {
   PENDING
   APPROVED
@@ -92,6 +104,7 @@ model User {
   settingsEdits SystemSetting[] @relation("SettingEditor")
   withdrawalsCreated WithdrawalRequest[] @relation("WithdrawalRequestedBy")
   withdrawalsReviewed WithdrawalRequest[] @relation("WithdrawalReviewedBy")
+  tenantMemberships TenantMembership[]
 }
 
 model Role {
@@ -116,6 +129,44 @@ model UserRole {
   @@index([roleId])
 }
 
+model Tenant {
+  id        String       @id @default(cuid())
+  slug      String       @unique
+  name      String
+  legalName String?
+  status    TenantStatus @default(ACTIVE)
+  isDefault Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  memberships TenantMembership[]
+  allyProfiles AllyProfile[]
+  properties   Property[]
+  bookings     Booking[]
+  auditLogs    AuditLog[]
+
+  @@index([status])
+  @@index([isDefault])
+}
+
+model TenantMembership {
+  id        String               @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      TenantMembershipRole @default(MEMBER)
+  isActive  Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+  @@index([role])
+  @@index([isActive])
+}
+
 model Session {
   id        String   @id @default(cuid())
   userId    String
@@ -130,6 +181,7 @@ model Session {
 
 model AllyProfile {
   id         String     @id @default(cuid())
+  tenantId   String
   userId     String     @unique
   status     AllyStatus @default(PENDING_KYC)
   isInternal Boolean    @default(false)
@@ -159,6 +211,7 @@ model AllyProfile {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
+  tenant     Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   wallet     AllyWallet?
   kycDocs    KycDocument[]
@@ -167,6 +220,8 @@ model AllyProfile {
   payouts    Payout[]
   withdrawals WithdrawalRequest[]
 
+  @@index([tenantId])
+  @@index([tenantId, status])
   @@index([status])
   @@index([isInternal])
 }
@@ -291,6 +346,7 @@ model KycDocument {
 
 model Property {
   id            String         @id @default(cuid())
+  tenantId      String
   allyProfileId String
   status        PropertyStatus @default(DRAFT)
 
@@ -323,12 +379,15 @@ model Property {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   allyProfile   AllyProfile @relation(fields: [allyProfileId], references: [id], onDelete: Restrict)
   images        PropertyImage[]
   amenities     PropertyAmenity[]
   availability  Availability[]
   bookings      Booking[]
 
+  @@index([tenantId])
+  @@index([tenantId, status])
   @@index([status])
   @@index([ciudad])
   @@index([allyProfileId])
@@ -388,6 +447,7 @@ model Availability {
 
 model Booking {
   id           String       @id @default(cuid())
+  tenantId     String
   status       BookingStatus @default(DRAFT)
   propertyId   String
   userId       String
@@ -407,10 +467,13 @@ model Booking {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   user     User     @relation(fields: [userId], references: [id], onDelete: Restrict)
   payments Payment[]
 
+  @@index([tenantId])
+  @@index([tenantId, status])
   @@index([propertyId])
   @@index([userId])
   @@index([status])
@@ -450,6 +513,7 @@ model Payout {
 
 model AuditLog {
   id          String   @id @default(cuid())
+  tenantId    String?
   actorUserId String?
   accion      String
   entidadTipo String?
@@ -459,8 +523,10 @@ model AuditLog {
   userAgent   String?
   createdAt   DateTime @default(now())
 
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
+  @@index([tenantId])
   @@index([actorUserId])
   @@index([accion])
   @@index([createdAt])
