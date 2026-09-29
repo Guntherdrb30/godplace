@@ -6,12 +6,14 @@ import { requireUser } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { registrarAuditoria } from "@/lib/audit";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const metadata = buildMetadata({ title: "Aliados", path: "/aliado" });
 
 async function iniciarProceso() {
   "use server";
   const user = await requireUser();
+  const tenantId = requireTenantId(user);
 
   // En producción, `prisma db seed` puede no ejecutarse. Garantizamos el rol ALIADO de forma idempotente.
   const roleAliado = await prisma.role.upsert({
@@ -26,11 +28,23 @@ async function iniciarProceso() {
     create: { userId: user.id, roleId: roleAliado.id },
   });
 
-  const ally = await prisma.allyProfile.upsert({
-    where: { userId: user.id },
-    update: { status: "PENDING_KYC" },
-    create: { userId: user.id, status: "PENDING_KYC", isInternal: false },
+  const existingAlly = await prisma.allyProfile.findFirst({
+    where: { userId: user.id, tenantId },
   });
+
+  const ally = existingAlly
+    ? await prisma.allyProfile.update({
+        where: { id: existingAlly.id },
+        data: { status: "PENDING_KYC" },
+      })
+    : await prisma.allyProfile.create({
+        data: {
+          tenantId,
+          userId: user.id,
+          status: "PENDING_KYC",
+          isInternal: false,
+        },
+      });
 
   await prisma.allyWallet.upsert({
     where: { allyProfileId: ally.id },
@@ -39,6 +53,7 @@ async function iniciarProceso() {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "ally.start_kyc",
     entidadTipo: "ally_profile",
