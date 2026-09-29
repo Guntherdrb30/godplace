@@ -11,7 +11,8 @@ function safeFilename(name: string): string {
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getCurrentUser();
   const isStaff = !!actor && (actor.roles.includes("ADMIN") || actor.roles.includes("ROOT"));
-  if (!isStaff) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
+  const tenantId = actor?.tenantId ?? null;
+  if (!isStaff || !tenantId) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
 
   const { id } = await ctx.params;
 
@@ -43,8 +44,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    const w = await tx.withdrawalRequest.findUnique({
-      where: { id },
+    const w = await tx.withdrawalRequest.findFirst({
+      where: { id, allyProfile: { tenantId } },
       select: { id: true, status: true, amountCents: true, currency: true, allyProfileId: true },
     });
     if (!w) {
@@ -103,6 +104,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor!.id,
     accion: "withdrawal_request.paid",
     entidadTipo: "withdrawal_request",
