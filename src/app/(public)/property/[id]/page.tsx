@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/site/container";
 import { prisma } from "@/lib/prisma";
@@ -130,6 +131,36 @@ export default async function PropertyPage(props: {
             </div>
           </div>
 
+          {p.listings.length > 1 ? (
+            <div className="rounded-3xl border bg-white/80 p-7 shadow-suave">
+              <h2 className="font-[var(--font-display)] text-2xl tracking-tight">
+                Opciones disponibles
+              </h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {p.listings.map((listing) => (
+                  <Link
+                    key={listing.id}
+                    href={`/property/${p.id}?listing=${listing.id}`}
+                    className={[
+                      "rounded-2xl border p-4 transition-colors",
+                      selectedListing?.id === listing.id
+                        ? "border-brand-primary bg-brand-primary/5"
+                        : "bg-white hover:bg-secondary/40",
+                    ].join(" ")}
+                  >
+                    <div className="text-sm font-medium">{listingOperationLabel(listing.operationType)}</div>
+                    <div className="mt-1 text-lg font-semibold">
+                      {formatMoney(listing.priceCents, listing.currency)}
+                      <span className="ml-1 text-xs font-normal text-muted-foreground">
+                        {listingPriceSuffix(listing.operationType)}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="rounded-3xl border bg-white/80 p-7 shadow-suave">
             <h2 className="font-[var(--font-display)] text-2xl tracking-tight">
               Amenidades
@@ -155,6 +186,7 @@ export default async function PropertyPage(props: {
             propertyId={p.id}
             agencyName={p.tenant.name}
             listings={p.listings}
+            initialListingId={selectedListing?.id ?? null}
           />
           {shortRentListing ? (
             <BookingWidget
