@@ -16,7 +16,21 @@ export default async function TenantBrandingPage() {
       <p className="mt-2 text-sm text-muted-foreground">
         Configura cómo se identifica esta inmobiliaria dentro del marketplace METRORA.
       </p>
-      <TenantBrandingForm initial={tenant} />
+      <TenantBrandingForm
+        initial={{
+          id: tenant.id,
+          name: tenant.name,
+          legalName: tenant.legalName,
+          logoUrl: tenant.logoUrl,
+          logoPathname: tenant.logoPathname,
+          primaryHsl: tenant.primaryHsl,
+          secondaryHsl: tenant.secondaryHsl,
+          contactEmail: tenant.contactEmail,
+          contactPhone: tenant.contactPhone,
+          contactWhatsapp: tenant.contactWhatsapp,
+          websiteUrl: tenant.websiteUrl,
+        }}
+      />
     </div>
   );
 }
