@@ -9,6 +9,7 @@ import { cotizarReserva } from "@/lib/pricing";
 
 const schema = z.object({
   propertyId: z.string().min(1),
+  listingId: z.string().min(1),
   checkIn: z.string().min(1),
   checkOut: z.string().min(1),
   guests: z.number().int().min(1).max(50),
@@ -30,27 +31,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Datos invalidos." }, { status: 400 });
     }
 
-    const property = await prisma.property.findUnique({
-      where: { id: parsed.data.propertyId },
-      select: {
-        id: true,
-        tenantId: true,
-        status: true,
-        currency: true,
-        pricePerNightCents: true,
-        huespedesMax: true,
-        assignedAgentProfileId: true,
-        listings: {
-          where: { status: "PUBLISHED", operationType: "SHORT_RENT" },
-          select: { id: true, assignedAgentProfileId: true },
-          take: 1,
+    const listing = await prisma.listing.findFirst({
+      where: {
+        id: parsed.data.listingId,
+        propertyId: parsed.data.propertyId,
+        status: "PUBLISHED",
+        operationType: "SHORT_RENT",
+        tenant: { is: { status: "ACTIVE" } },
+        property: { status: "PUBLISHED" },
+      },
+      include: {
+        property: {
+          select: {
+            id: true,
+            tenantId: true,
+            huespedesMax: true,
+            assignedAgentProfileId: true,
+          },
         },
       },
     });
-    if (!property || property.status !== "PUBLISHED") {
+    if (!listing) {
       return NextResponse.json({ ok: false, message: "Propiedad no encontrada." }, { status: 404 });
     }
-    if (parsed.data.guests > property.huespedesMax) {
+    if (parsed.data.guests > listing.property.huespedesMax) {
       return NextResponse.json({ ok: false, message: "Excede el maximo de huespedes." }, { status: 400 });
     }
 
@@ -61,8 +65,8 @@ export async function POST(req: Request) {
     }
 
     const quote = await cotizarReserva({
-      pricePerNightCents: property.pricePerNightCents,
-      currency: property.currency,
+      pricePerNightCents: listing.priceCents,
+      currency: listing.currency,
       checkIn,
       checkOut,
       guests: parsed.data.guests,
@@ -73,7 +77,7 @@ export async function POST(req: Request) {
 
     const booking = await prisma.$transaction(async (tx) => {
       const conflict = await findAvailabilityConflict(tx, {
-        propertyId: property.id,
+        propertyId: listing.property.id,
         checkIn,
         checkOut,
       });
@@ -83,9 +87,9 @@ export async function POST(req: Request) {
 
       const booking = await tx.booking.create({
         data: {
-          tenantId: property.tenantId,
+          tenantId: listing.tenantId,
           status: "DRAFT",
-          propertyId: property.id,
+          propertyId: listing.property.id,
           userId: user.id,
           checkIn,
           checkOut,
@@ -101,15 +105,15 @@ export async function POST(req: Request) {
         },
       });
 
-      const shortRentListing = property.listings[0] ?? null;
+      const shortRentListing = listing;
       let assignedAgentProfileId =
-        shortRentListing?.assignedAgentProfileId ||
-        property.assignedAgentProfileId ||
+        listing.assignedAgentProfileId ||
+        listing.property.assignedAgentProfileId ||
         null;
 
       if (!assignedAgentProfileId) {
         const fallbackAgent = await tx.agentProfile.findFirst({
-          where: { tenantId: property.tenantId, isActive: true },
+          where: { tenantId: listing.tenantId, isActive: true },
           select: { id: true },
           orderBy: { createdAt: "asc" },
         });
@@ -118,8 +122,8 @@ export async function POST(req: Request) {
 
       const existingLead = await tx.lead.findFirst({
         where: {
-          tenantId: property.tenantId,
-          propertyId: property.id,
+          tenantId: listing.tenantId,
+          propertyId: listing.property.id,
           email: user.email,
           stage: { notIn: ["WON", "LOST"] },
         },
@@ -130,7 +134,7 @@ export async function POST(req: Request) {
         await tx.lead.update({
           where: { id: existingLead.id },
           data: {
-            listingId: shortRentListing?.id ?? existingLead.listingId,
+            listingId: shortRentListing.id,
             assignedAgentProfileId:
               existingLead.assignedAgentProfileId || assignedAgentProfileId,
             source: existingLead.source || "BOOKING",
@@ -148,9 +152,9 @@ export async function POST(req: Request) {
       } else {
         await tx.lead.create({
           data: {
-            tenantId: property.tenantId,
-            listingId: shortRentListing?.id ?? null,
-            propertyId: property.id,
+            tenantId: listing.tenantId,
+            listingId: shortRentListing.id,
+            propertyId: listing.property.id,
             assignedAgentProfileId,
             name: user.nombre || user.email,
             email: user.email,
@@ -167,12 +171,12 @@ export async function POST(req: Request) {
     });
 
     await registrarAuditoria({
-      tenantId: property.tenantId,
+      tenantId: listing.tenantId,
       actorUserId: user.id,
       accion: "booking.create_draft",
       entidadTipo: "booking",
       entidadId: booking.id,
-      metadata: { propertyId: property.id },
+      metadata: { propertyId: listing.property.id },
     });
 
     return NextResponse.json({ ok: true, bookingId: booking.id });
