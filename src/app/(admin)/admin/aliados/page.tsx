@@ -11,6 +11,7 @@ import { registrarAuditoria } from "@/lib/audit";
 import { labelAllyStatus, labelKycStatus } from "@/lib/labels";
 import { sendEmail } from "@/lib/email";
 import { buildProtectedBlobUrl } from "@/lib/blob/shared";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -26,11 +27,12 @@ function hasApprovedDoc(
 async function aprobarAliado(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const allyProfileId = String(formData.get("allyProfileId") || "");
   if (!allyProfileId) throw new Error("Falta allyProfileId.");
 
-  const ally = await prisma.allyProfile.findUnique({
-    where: { id: allyProfileId },
+  const ally = await prisma.allyProfile.findFirst({
+    where: { id: allyProfileId, tenantId },
     include: { user: true, contract: true, kycDocs: true },
   });
   if (!ally) throw new Error("No existe el aliado.");
@@ -53,6 +55,7 @@ async function aprobarAliado(formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "ally.approve",
     entidadTipo: "ally_profile",
@@ -77,12 +80,13 @@ async function aprobarAliado(formData: FormData) {
 async function rechazarAliado(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const allyProfileId = String(formData.get("allyProfileId") || "");
   const notasAdmin = String(formData.get("notasAdmin") || "").trim() || null;
   if (!allyProfileId) throw new Error("Falta allyProfileId.");
 
-  const ally = await prisma.allyProfile.findUnique({
-    where: { id: allyProfileId },
+  const ally = await prisma.allyProfile.findFirst({
+    where: { id: allyProfileId, tenantId },
     include: { user: true, contract: true },
   });
   if (!ally) throw new Error("No existe el aliado.");
@@ -101,6 +105,7 @@ async function rechazarAliado(formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "ally.reject",
     entidadTipo: "ally_profile",
@@ -126,8 +131,11 @@ async function rechazarAliado(formData: FormData) {
 }
 
 export default async function AdminAliadosPage() {
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
+
   const allies = await prisma.allyProfile.findMany({
-    where: { isInternal: false },
+    where: { tenantId, isInternal: false },
     include: {
       user: true,
       contract: true,
