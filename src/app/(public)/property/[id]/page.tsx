@@ -39,7 +39,19 @@ export default async function PropertyPage(props: {
       images: { orderBy: { orden: "asc" } },
       amenities: { include: { amenity: true } },
       allyProfile: true,
-      tenant: { select: { name: true, status: true } },
+      tenant: {
+        select: {
+          name: true,
+          status: true,
+          logoUrl: true,
+          primaryHsl: true,
+          secondaryHsl: true,
+          contactEmail: true,
+          contactPhone: true,
+          contactWhatsapp: true,
+          websiteUrl: true,
+        },
+      },
       listings: {
         where: { status: "PUBLISHED" },
         select: {
@@ -185,6 +197,10 @@ export default async function PropertyPage(props: {
           <MarketplaceLeadForm
             propertyId={p.id}
             agencyName={p.tenant.name}
+            agencyLogoUrl={p.tenant.logoUrl}
+            agencyPhone={p.tenant.contactPhone}
+            agencyWhatsapp={p.tenant.contactWhatsapp}
+            agencyWebsiteUrl={p.tenant.websiteUrl}
             listings={p.listings}
             initialListingId={selectedListing?.id ?? null}
           />
@@ -197,10 +213,11 @@ export default async function PropertyPage(props: {
               pricePerNightCents={shortRentListing.priceCents}
             />
           ) : null}
-          <p className="text-xs text-muted-foreground">
-            Publicado en METRORA por {p.tenant.name}. Inventario:{" "}
-            {p.allyProfile.isInternal ? "interno" : "aliado externo"}.
-          </p>
+          <div className="rounded-2xl border bg-white/70 p-4 text-xs text-muted-foreground">
+            <div>Publicado en METRORA por <span className="font-medium text-foreground">{p.tenant.name}</span>.</div>
+            {p.tenant.contactEmail ? <div className="mt-1">Email: {p.tenant.contactEmail}</div> : null}
+            <div className="mt-1">Inventario: {p.allyProfile.isInternal ? "interno" : "aliado externo"}.</div>
+          </div>
         </div>
       </div>
     </Container>
