@@ -166,34 +166,6 @@ async function main() {
   }
 
   // Backfill: garantizar billetera para aliados existentes.
-  const allUsers = await prisma.user.findMany({
-    include: { roles: { include: { role: true } } },
-  });
-  for (const user of allUsers) {
-    const codes = user.roles.map((ur) => ur.role.code);
-    const tenantRole = codes.includes("ROOT")
-      ? "OWNER"
-      : codes.includes("ADMIN")
-        ? "ADMIN"
-        : "MEMBER";
-
-    await prisma.tenantMembership.upsert({
-      where: { tenantId_userId: { tenantId: defaultTenant.id, userId: user.id } },
-      update: { role: tenantRole, isActive: true },
-      create: {
-        tenantId: defaultTenant.id,
-        userId: user.id,
-        role: tenantRole,
-        isActive: true,
-      },
-    });
-  }
-
-  await prisma.allyProfile.updateMany({
-    where: { tenantId: { not: defaultTenant.id } },
-    data: { tenantId: defaultTenant.id },
-  });
-
   const allyProfiles = await prisma.allyProfile.findMany({ select: { id: true } });
   for (const ap of allyProfiles) {
     await prisma.allyWallet.upsert({
