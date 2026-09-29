@@ -11,7 +11,7 @@ export async function SiteFooter() {
           <div>
             <span className="font-medium text-foreground">{branding.brandName}.</span>{" "}
             <span className="text-muted-foreground">
-              Alquiler temporal en Venezuela.
+              La red inmobiliaria inteligente.
             </span>
           </div>
           <div className="text-muted-foreground">
