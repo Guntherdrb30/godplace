@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { buildMetadata } from "@/lib/seo";
 import { BookingWidget } from "@/components/site/booking-widget";
 import { Badge } from "@/components/ui/badge";
+import { MarketplaceLeadForm } from "@/components/site/marketplace-lead-form";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +31,21 @@ export default async function PropertyPage(props: { params: Promise<{ id: string
       images: { orderBy: { orden: "asc" } },
       amenities: { include: { amenity: true } },
       allyProfile: true,
+      tenant: { select: { name: true, status: true } },
+      listings: {
+        where: { status: "PUBLISHED" },
+        select: {
+          id: true,
+          title: true,
+          operationType: true,
+          priceCents: true,
+          currency: true,
+        },
+        orderBy: { updatedAt: "desc" },
+      },
     },
   });
-  if (!p || p.status !== "PUBLISHED") notFound();
+  if (!p || p.status !== "PUBLISHED" || p.tenant.status !== "ACTIVE") notFound();
 
   const hero = p.images[0]?.url || "/placeholder-propiedad.svg";
 
@@ -112,15 +125,20 @@ export default async function PropertyPage(props: { params: Promise<{ id: string
           </div>
         </div>
 
-        <div className="lg:sticky lg:top-24">
+        <div className="space-y-5 lg:sticky lg:top-24">
+          <MarketplaceLeadForm
+            propertyId={p.id}
+            agencyName={p.tenant.name}
+            listings={p.listings}
+          />
           <BookingWidget
             propertyId={p.id}
             maxGuests={p.huespedesMax}
             currency={p.currency}
             pricePerNightCents={p.pricePerNightCents}
           />
-          <p className="mt-3 text-xs text-muted-foreground">
-            Operación centralizada. Inventario del aliado:{" "}
+          <p className="text-xs text-muted-foreground">
+            Publicado en METRORA por {p.tenant.name}. Inventario:{" "}
             {p.allyProfile.isInternal ? "interno" : "aliado externo"}.
           </p>
         </div>
