@@ -52,7 +52,7 @@ export function GodReservaModal(props: {
               Cancelar
             </Button>
             <Button type="submit" variant="brand">
-              Iniciar con {props.agentName || "God"}
+              Iniciar con {props.agentName || "METRORA AI"}
             </Button>
           </div>
         </form>
