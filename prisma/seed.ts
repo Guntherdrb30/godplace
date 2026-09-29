@@ -2,6 +2,12 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
+import {
+  DEFAULT_TENANT_ID,
+  DEFAULT_TENANT_LEGAL_NAME,
+  DEFAULT_TENANT_NAME,
+  DEFAULT_TENANT_SLUG,
+} from "../src/lib/tenancy/constants";
 
 const prisma = new PrismaClient();
 
@@ -16,6 +22,24 @@ function randomPassword(): string {
 }
 
 async function main() {
+  const defaultTenant = await prisma.tenant.upsert({
+    where: { slug: DEFAULT_TENANT_SLUG },
+    update: {
+      name: DEFAULT_TENANT_NAME,
+      legalName: DEFAULT_TENANT_LEGAL_NAME,
+      status: "ACTIVE",
+      isDefault: true,
+    },
+    create: {
+      id: DEFAULT_TENANT_ID,
+      slug: DEFAULT_TENANT_SLUG,
+      name: DEFAULT_TENANT_NAME,
+      legalName: DEFAULT_TENANT_LEGAL_NAME,
+      status: "ACTIVE",
+      isDefault: true,
+    },
+  });
+
   const roles = [
     { code: "ROOT", nombre: "ROOT" },
     { code: "ADMIN", nombre: "ADMIN" },
@@ -49,6 +73,17 @@ async function main() {
     create: { userId: root.id, roleId: roleRoot.id },
   });
 
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId: defaultTenant.id, userId: root.id } },
+    update: { role: "OWNER", isActive: true },
+    create: {
+      tenantId: defaultTenant.id,
+      userId: root.id,
+      role: "OWNER",
+      isActive: true,
+    },
+  });
+
   // Inventario interno: propiedades operadas por la empresa central.
   const internalEmail = (process.env.SEED_INTERNAL_EMAIL || "inventario@trends172tech.com").toLowerCase().trim();
   const internalPassword = process.env.SEED_INTERNAL_PASSWORD || randomPassword();
@@ -67,10 +102,26 @@ async function main() {
     create: { userId: internalUser.id, roleId: roleAliado.id },
   });
 
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId: defaultTenant.id, userId: internalUser.id } },
+    update: { role: "MEMBER", isActive: true },
+    create: {
+      tenantId: defaultTenant.id,
+      userId: internalUser.id,
+      role: "MEMBER",
+      isActive: true,
+    },
+  });
+
   const internalProfile = await prisma.allyProfile.upsert({
     where: { userId: internalUser.id },
-    update: { isInternal: true, status: "KYC_APPROVED" },
-    create: { userId: internalUser.id, isInternal: true, status: "KYC_APPROVED" },
+    update: { tenantId: defaultTenant.id, isInternal: true, status: "KYC_APPROVED" },
+    create: {
+      tenantId: defaultTenant.id,
+      userId: internalUser.id,
+      isInternal: true,
+      status: "KYC_APPROVED",
+    },
   });
 
   // Billetera del aliado (contabilidad interna).
@@ -115,6 +166,34 @@ async function main() {
   }
 
   // Backfill: garantizar billetera para aliados existentes.
+  const allUsers = await prisma.user.findMany({
+    include: { roles: { include: { role: true } } },
+  });
+  for (const user of allUsers) {
+    const codes = user.roles.map((ur) => ur.role.code);
+    const tenantRole = codes.includes("ROOT")
+      ? "OWNER"
+      : codes.includes("ADMIN")
+        ? "ADMIN"
+        : "MEMBER";
+
+    await prisma.tenantMembership.upsert({
+      where: { tenantId_userId: { tenantId: defaultTenant.id, userId: user.id } },
+      update: { role: tenantRole, isActive: true },
+      create: {
+        tenantId: defaultTenant.id,
+        userId: user.id,
+        role: tenantRole,
+        isActive: true,
+      },
+    });
+  }
+
+  await prisma.allyProfile.updateMany({
+    where: { tenantId: { not: defaultTenant.id } },
+    data: { tenantId: defaultTenant.id },
+  });
+
   const allyProfiles = await prisma.allyProfile.findMany({ select: { id: true } });
   for (const ap of allyProfiles) {
     await prisma.allyWallet.upsert({
