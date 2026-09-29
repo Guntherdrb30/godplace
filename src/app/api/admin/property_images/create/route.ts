@@ -15,20 +15,24 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   const isStaff = !!user && (user.roles.includes("ADMIN") || user.roles.includes("ROOT"));
   const isAliado = !!user && user.roles.includes("ALIADO") && !!user.allyProfileId;
+  const tenantId = user?.tenantId ?? null;
 
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
+  if (!user || !tenantId) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
+
+  const prop = await prisma.property.findFirst({
+    where: { id: parsed.data.propertyId, tenantId },
+    select: { allyProfileId: true },
+  });
+  if (!prop) return NextResponse.json({ ok: false, message: "Propiedad no encontrada." }, { status: 404 });
 
   if (!isStaff) {
     if (!isAliado) {
       return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
     }
-    const prop = await prisma.property.findUnique({
-      where: { id: parsed.data.propertyId },
-      select: { allyProfileId: true },
-    });
-    if (!prop || prop.allyProfileId !== user.allyProfileId) {
+    if (prop.allyProfileId !== user.allyProfileId) {
       return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
     }
   }
@@ -51,6 +55,7 @@ export async function POST(req: Request) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "property_image.create",
     entidadTipo: "property_image",
