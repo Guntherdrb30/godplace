@@ -39,6 +39,12 @@ export async function POST(req: Request) {
         currency: true,
         pricePerNightCents: true,
         huespedesMax: true,
+        assignedAgentProfileId: true,
+        listings: {
+          where: { status: "PUBLISHED", operationType: "SHORT_RENT" },
+          select: { id: true, assignedAgentProfileId: true },
+          take: 1,
+        },
       },
     });
     if (!property || property.status !== "PUBLISHED") {
@@ -75,7 +81,7 @@ export async function POST(req: Request) {
         throw new Error(conflict.message);
       }
 
-      return tx.booking.create({
+      const booking = await tx.booking.create({
         data: {
           tenantId: property.tenantId,
           status: "DRAFT",
@@ -94,6 +100,70 @@ export async function POST(req: Request) {
           snapshot: quote.snapshot as Prisma.InputJsonValue,
         },
       });
+
+      const shortRentListing = property.listings[0] ?? null;
+      let assignedAgentProfileId =
+        shortRentListing?.assignedAgentProfileId ||
+        property.assignedAgentProfileId ||
+        null;
+
+      if (!assignedAgentProfileId) {
+        const fallbackAgent = await tx.agentProfile.findFirst({
+          where: { tenantId: property.tenantId, isActive: true },
+          select: { id: true },
+          orderBy: { createdAt: "asc" },
+        });
+        assignedAgentProfileId = fallbackAgent?.id ?? null;
+      }
+
+      const existingLead = await tx.lead.findFirst({
+        where: {
+          tenantId: property.tenantId,
+          propertyId: property.id,
+          email: user.email,
+          stage: { notIn: ["WON", "LOST"] },
+        },
+        orderBy: { updatedAt: "desc" },
+      });
+
+      if (existingLead) {
+        await tx.lead.update({
+          where: { id: existingLead.id },
+          data: {
+            listingId: shortRentListing?.id ?? existingLead.listingId,
+            assignedAgentProfileId:
+              existingLead.assignedAgentProfileId || assignedAgentProfileId,
+            source: existingLead.source || "BOOKING",
+            stage:
+              existingLead.stage === "NEW"
+                ? "QUALIFIED"
+                : existingLead.stage,
+            priority: "HIGH",
+            notes: existingLead.notes
+              ? `${existingLead.notes}\nReserva borrador ${booking.id}: ${parsed.data.checkIn} → ${parsed.data.checkOut}, ${parsed.data.guests} huésped(es).`
+              : `Reserva borrador ${booking.id}: ${parsed.data.checkIn} → ${parsed.data.checkOut}, ${parsed.data.guests} huésped(es).`,
+            lastContactAt: new Date(),
+          },
+        });
+      } else {
+        await tx.lead.create({
+          data: {
+            tenantId: property.tenantId,
+            listingId: shortRentListing?.id ?? null,
+            propertyId: property.id,
+            assignedAgentProfileId,
+            name: user.nombre || user.email,
+            email: user.email,
+            source: "BOOKING",
+            stage: "QUALIFIED",
+            priority: "HIGH",
+            notes: `Reserva borrador ${booking.id}: ${parsed.data.checkIn} → ${parsed.data.checkOut}, ${parsed.data.guests} huésped(es).`,
+            lastContactAt: new Date(),
+          },
+        });
+      }
+
+      return booking;
     });
 
     await registrarAuditoria({
