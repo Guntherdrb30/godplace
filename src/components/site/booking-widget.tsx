@@ -19,6 +19,7 @@ type Quote = {
 
 export function BookingWidget(props: {
   propertyId: string;
+  listingId: string;
   maxGuests: number;
   currency: string;
   pricePerNightCents: number;
@@ -43,6 +44,7 @@ export function BookingWidget(props: {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           propertyId: props.propertyId,
+          listingId: props.listingId,
           checkIn,
           checkOut,
           guests,
@@ -53,7 +55,7 @@ export function BookingWidget(props: {
     } finally {
       setLoading(false);
     }
-  }, [checkIn, checkOut, guests, props.propertyId]);
+  }, [checkIn, checkOut, guests, props.listingId, props.propertyId]);
 
   React.useEffect(() => {
     void cotizar();
@@ -72,6 +74,7 @@ export function BookingWidget(props: {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           propertyId: props.propertyId,
+          listingId: props.listingId,
           checkIn,
           checkOut,
           guests,
