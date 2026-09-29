@@ -59,8 +59,14 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     email: session.user.email,
     nombre: session.user.nombre ?? null,
     roles,
-    allyProfileId: session.user.allyProfile?.id ?? null,
-    allyIsInternal: session.user.allyProfile?.isInternal ?? false,
+    allyProfileId:
+      session.user.allyProfile && session.user.allyProfile.tenantId === activeMembership?.tenantId
+        ? session.user.allyProfile.id
+        : null,
+    allyIsInternal:
+      session.user.allyProfile?.tenantId === activeMembership?.tenantId
+        ? session.user.allyProfile.isInternal
+        : false,
     tenantId: activeMembership?.tenantId ?? null,
     tenantSlug: activeMembership?.tenant.slug ?? null,
     tenantRole: activeMembership?.role ?? null,
