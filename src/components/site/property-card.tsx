@@ -11,6 +11,7 @@ export function PropertyCard(props: {
   currency: string;
   pricePerNightCents: number;
   imageUrl?: string | null;
+  agencyName?: string | null;
 }) {
   return (
     <Link href={`/property/${props.id}`} className="group block focus-visible:rounded-2xl">
@@ -28,6 +29,9 @@ export function PropertyCard(props: {
           <div className="text-sm text-muted-foreground">
             {props.ciudad}, {props.estadoRegion}
           </div>
+          {props.agencyName ? (
+            <div className="text-xs text-muted-foreground">Por {props.agencyName}</div>
+          ) : null}
         </CardHeader>
         <CardContent className="pt-0">
           <div className="text-sm">
