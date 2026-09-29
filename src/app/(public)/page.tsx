@@ -98,15 +98,15 @@ export default async function HomePage() {
             {[
               {
                 t: "Explora",
-                d: "Busca y compara propiedades publicadas en Venezuela.",
+                d: "Busca y compara venta, alquiler temporal, residencial y comercial.",
               },
               {
-                t: "Cotiza",
-                d: "Selecciona fechas y huéspedes. Guardamos el snapshot del precio.",
+                t: "Conecta",
+                d: "Solicita información y tu consulta entra al CRM de la inmobiliaria responsable.",
               },
               {
-                t: "Reserva",
-                d: "Creamos un borrador y luego confirmación. Pagos reales: TODO MVP.",
+                t: "Avanza",
+                d: "Agenda visitas, recibe ofertas o reserva alquiler temporal cuando corresponda.",
               },
             ].map((x) => (
               <div key={x.t} className="rounded-2xl border bg-white/80 p-6 shadow-suave">
@@ -144,11 +144,10 @@ export default async function HomePage() {
         <section className="mt-16 mb-2">
           <div className="rounded-3xl border bg-brand-secondary p-10 text-white shadow-suave">
             <h2 className="font-[var(--font-display)] text-3xl tracking-tight">
-              Publica y opera con control central
+              La red inmobiliaria inteligente
             </h2>
             <p className="mt-3 max-w-2xl text-white/85">
-              {branding.brandName}. está diseñado para un catálogo aprobado y una operación con roles
-              (ROOT/ADMIN/ALIADO/CLIENTE) y verificación manual.
+              {branding.brandName} conecta inmobiliarias, agentes y clientes en un marketplace común con CRM, IA y operación multiempresa.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="brand">
