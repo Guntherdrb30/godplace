@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-export const SITE_NAME = "Godplaces.";
+export const SITE_NAME = "METRORA";
 export const SITE_DESCRIPTION =
-  "Alquiler temporal en Venezuela con verificacion de aliados y soporte centralizado.";
+  "La red inmobiliaria inteligente: venta, alquiler, CRM e inteligencia artificial para inmobiliarias en Venezuela.";
 
 export function siteUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
