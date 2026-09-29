@@ -2,18 +2,25 @@ import { Container } from "@/components/site/container";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buildMetadata } from "@/lib/seo";
+import { requireRole } from "@/lib/auth/guards";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = buildMetadata({ title: "Admin", path: "/admin" });
 
 export default async function AdminPage() {
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
+
   const [propsCount, bookingsCount, kycPendientes, propertiesPendientes, aliadosPendientes] = await Promise.all([
-    prisma.property.count(),
-    prisma.booking.count(),
-    prisma.allyProfile.count({ where: { status: "PENDING_KYC" } }),
-    prisma.property.count({ where: { status: "PENDING_APPROVAL" } }),
-    prisma.allyContract.count({ where: { status: "PENDING" } }),
+    prisma.property.count({ where: { tenantId } }),
+    prisma.booking.count({ where: { tenantId } }),
+    prisma.allyProfile.count({ where: { tenantId, status: "PENDING_KYC" } }),
+    prisma.property.count({ where: { tenantId, status: "PENDING_APPROVAL" } }),
+    prisma.allyContract.count({
+      where: { status: "PENDING", allyProfile: { tenantId } },
+    }),
   ]);
 
   return (
