@@ -18,29 +18,30 @@ export default async function SearchPage(props: {
 }) {
   const sp = await props.searchParams;
   const ciudad = typeof sp.ciudad === "string" ? sp.ciudad.trim() : "";
-  const guestsRaw = typeof sp.huespedes === "string" ? sp.huespedes : "";
-  const huespedes = guestsRaw ? Math.max(1, Number.parseInt(guestsRaw, 10) || 1) : 1;
+  const operation =
+    typeof sp.operacion === "string" && ["SALE","SHORT_RENT","LONG_RENT","COMMERCIAL_RENT"].includes(sp.operacion)
+      ? sp.operacion
+      : "";
+  const propertyType = typeof sp.tipo === "string" ? sp.tipo : "";
 
-  const items = await prisma.property.findMany({
+  const items = await prisma.listing.findMany({
     where: {
       status: "PUBLISHED",
       tenant: { is: { status: "ACTIVE" } },
-      ...(ciudad
-        ? {
-            ciudad: { contains: ciudad, mode: "insensitive" },
-          }
-        : {}),
-      ...(huespedes
-        ? {
-            huespedesMax: { gte: huespedes },
-          }
-        : {}),
+      property: {
+        status: "PUBLISHED",
+        ...(ciudad ? { ciudad: { contains: ciudad, mode: "insensitive" } } : {}),
+        ...(propertyType ? { propertyType: propertyType as never } : {}),
+      },
+      ...(operation ? { operationType: operation as never } : {}),
     },
     include: {
-      images: { orderBy: { orden: "asc" }, take: 1 },
-      tenant: { select: { name: true, status: true } },
+      tenant: { select: { name: true } },
+      property: {
+        include: { images: { orderBy: { orden: "asc" }, take: 1 } },
+      },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
     take: 60,
   });
 
@@ -52,24 +53,42 @@ export default async function SearchPage(props: {
             Explorar propiedades
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Resultados del catálogo aprobado por el operador central.
+            Propiedades publicadas por las inmobiliarias participantes de METRORA.
           </p>
         </div>
 
-        <form className="grid gap-4 rounded-2xl border bg-white/80 p-5 shadow-suave sm:grid-cols-3">
+        <form className="grid gap-4 rounded-2xl border bg-white/80 p-5 shadow-suave md:grid-cols-4">
           <div className="grid gap-2">
             <Label htmlFor="ciudad">Ciudad</Label>
             <Input id="ciudad" name="ciudad" defaultValue={ciudad} placeholder="Ej: Caracas, Valencia..." />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="huespedes">Huéspedes</Label>
-            <Input
-              id="huespedes"
-              name="huespedes"
-              type="number"
-              min={1}
-              defaultValue={String(huespedes)}
-            />
+            <Label htmlFor="operacion">Operación</Label>
+            <select id="operacion" name="operacion" defaultValue={operation} className="h-10 rounded-md border bg-white px-3 text-sm">
+              <option value="">Todas</option>
+              <option value="SALE">Venta</option>
+              <option value="SHORT_RENT">Alquiler temporal</option>
+              <option value="LONG_RENT">Alquiler residencial</option>
+              <option value="COMMERCIAL_RENT">Alquiler comercial</option>
+            </select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="tipo">Tipo</Label>
+            <select id="tipo" name="tipo" defaultValue={propertyType} className="h-10 rounded-md border bg-white px-3 text-sm">
+              <option value="">Todos</option>
+              <option value="HOUSE">Casa</option>
+              <option value="APARTMENT">Apartamento</option>
+              <option value="TOWNHOUSE">Townhouse</option>
+              <option value="LAND">Terreno</option>
+              <option value="OFFICE">Oficina</option>
+              <option value="COMMERCIAL">Local comercial</option>
+              <option value="WAREHOUSE">Galpón</option>
+              <option value="BUILDING">Edificio</option>
+              <option value="FARM">Finca</option>
+              <option value="HOTEL">Hotel / Posada</option>
+              <option value="VACATION">Vacacional</option>
+              <option value="OTHER">Otro</option>
+            </select>
           </div>
           <div className="flex items-end">
             <Button type="submit" variant="brand" className="w-full">
@@ -84,17 +103,19 @@ export default async function SearchPage(props: {
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((p) => (
+            {items.map((listing) => (
               <PropertyCard
-                key={p.id}
-                id={p.id}
-                titulo={p.titulo}
-                ciudad={p.ciudad}
-                estadoRegion={p.estadoRegion}
-                currency={p.currency}
-                pricePerNightCents={p.pricePerNightCents}
-                imageUrl={p.images[0]?.url ?? null}
-                agencyName={p.tenant.name}
+                key={listing.id}
+                id={listing.property.id}
+                listingId={listing.id}
+                titulo={listing.title}
+                ciudad={listing.property.ciudad}
+                estadoRegion={listing.property.estadoRegion}
+                currency={listing.currency}
+                priceCents={listing.priceCents}
+                operationType={listing.operationType}
+                imageUrl={listing.property.images[0]?.url ?? null}
+                agencyName={listing.tenant.name}
               />
             ))}
           </div>
