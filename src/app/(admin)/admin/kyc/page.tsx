@@ -11,6 +11,7 @@ import { registrarAuditoria } from "@/lib/audit";
 import type { AllyStatus, KycStatus } from "@prisma/client";
 import { labelAllyStatus, labelKycStatus } from "@/lib/labels";
 import { buildProtectedBlobUrl } from "@/lib/blob/shared";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +19,17 @@ export const metadata = buildMetadata({ title: "KYC", path: "/admin/kyc" });
 
 async function actualizarDocConEstado(status: KycStatus, formData: FormData) {
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
 
   const id = String(formData.get("id") || "").trim();
   const notasAdmin = String(formData.get("notasAdmin") || "").trim() || null;
   if (!id) throw new Error("Falta id.");
+
+  const doc = await prisma.kycDocument.findFirst({
+    where: { id, allyProfile: { tenantId } },
+    select: { id: true },
+  });
+  if (!doc) throw new Error("Documento no encontrado.");
 
   await prisma.kycDocument.update({
     where: { id },
@@ -29,6 +37,7 @@ async function actualizarDocConEstado(status: KycStatus, formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "kyc_document.update_status",
     entidadTipo: "kyc_document",
@@ -56,10 +65,17 @@ async function actualizarDocRechazado(formData: FormData) {
 
 async function actualizarPerfilConEstado(status: AllyStatus, formData: FormData) {
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
 
   const id = String(formData.get("id") || "").trim();
   const notasAdmin = String(formData.get("notasAdmin") || "").trim() || null;
   if (!id) throw new Error("Falta id.");
+
+  const profile = await prisma.allyProfile.findFirst({
+    where: { id, tenantId },
+    select: { id: true },
+  });
+  if (!profile) throw new Error("Perfil no encontrado.");
 
   await prisma.allyProfile.update({
     where: { id },
@@ -67,6 +83,7 @@ async function actualizarPerfilConEstado(status: AllyStatus, formData: FormData)
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "ally_profile.update_status",
     entidadTipo: "ally_profile",
@@ -98,8 +115,11 @@ async function actualizarPerfilSuspendido(formData: FormData) {
 }
 
 export default async function AdminKycPage() {
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
+
   const allies = await prisma.allyProfile.findMany({
-    where: { isInternal: false },
+    where: { tenantId, isInternal: false },
     include: {
       user: true,
       kycDocs: { orderBy: { createdAt: "desc" } },
