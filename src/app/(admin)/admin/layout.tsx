@@ -52,6 +52,7 @@ function AdminNav(props: {
         </div>
         <div className="mt-2 space-y-1">
           <NavLink href="/admin" label="Resumen" />
+          <NavLink href="/admin/onboarding" label="Onboarding" />
           <NavLink
             href="/admin/propiedades"
             label="Propiedades"
