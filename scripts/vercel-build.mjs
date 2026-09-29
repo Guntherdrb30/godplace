@@ -48,4 +48,10 @@ if (process.env.RUN_SEED === "1") {
   run("npm", ["run", "db:seed"]);
 }
 
+// Preview-only transactional QA. It creates two tenants and their operational data,
+// validates tenant isolation, and forces a rollback before the build continues.
+if (process.env.VERCEL_ENV === "preview" && process.env.DATABASE_URL) {
+  run("npm", ["run", "test:multitenancy"]);
+}
+
 run("npm", ["run", "build"]);
