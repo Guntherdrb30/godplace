@@ -24,7 +24,7 @@ export default async function SearchPage(props: {
   const items = await prisma.property.findMany({
     where: {
       status: "PUBLISHED",
-      tenant: { status: "ACTIVE" },
+      tenant: { is: { status: "ACTIVE" } },
       ...(ciudad
         ? {
             ciudad: { contains: ciudad, mode: "insensitive" },
