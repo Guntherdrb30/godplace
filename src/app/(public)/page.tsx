@@ -20,10 +20,19 @@ export const metadata = buildMetadata({
 export default async function HomePage() {
   const branding = await getSiteBranding();
   const destacados = dbDisponible()
-    ? await prisma.property.findMany({
-        where: { status: "PUBLISHED" },
-        include: { images: { orderBy: { orden: "asc" }, take: 1 } },
-        orderBy: { updatedAt: "desc" },
+    ? await prisma.listing.findMany({
+        where: {
+          status: "PUBLISHED",
+          tenant: { is: { status: "ACTIVE" } },
+          property: { status: "PUBLISHED" },
+        },
+        include: {
+          tenant: { select: { name: true } },
+          property: {
+            include: { images: { orderBy: { orden: "asc" }, take: 1 } },
+          },
+        },
+        orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
         take: 6,
       })
     : [];
@@ -42,7 +51,7 @@ export default async function HomePage() {
                 Destacados
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Propiedades publicadas y aprobadas por el operador central.
+                Publicaciones activas de las inmobiliarias participantes.
               </p>
             </div>
             <Button asChild variant="outline">
@@ -56,7 +65,7 @@ export default async function HomePage() {
             </div>
           ) : destacados.length === 0 ? (
             <div className="mt-6 rounded-2xl border bg-white/70 p-8 text-sm text-muted-foreground">
-              Aún no hay propiedades publicadas. Si eres ADMIN/ROOT, carga el inventario
+              Aún no hay publicaciones activas. Si eres ADMIN/ROOT, gestiona el inventario
               en <Link className="underline" href="/admin">/admin</Link>.
             </div>
           ) : (
@@ -64,13 +73,16 @@ export default async function HomePage() {
               {destacados.map((p) => (
                 <PropertyCard
                   key={p.id}
-                  id={p.id}
-                  titulo={p.titulo}
-                  ciudad={p.ciudad}
-                  estadoRegion={p.estadoRegion}
+                  id={p.property.id}
+                  listingId={p.id}
+                  titulo={p.title}
+                  ciudad={p.property.ciudad}
+                  estadoRegion={p.property.estadoRegion}
                   currency={p.currency}
-                  pricePerNightCents={p.pricePerNightCents}
-                  imageUrl={p.images[0]?.url ?? null}
+                  priceCents={p.priceCents}
+                  operationType={p.operationType}
+                  imageUrl={p.property.images[0]?.url ?? null}
+                  agencyName={p.tenant.name}
                 />
               ))}
             </div>
