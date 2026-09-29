@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { registrarAuditoria } from "@/lib/audit";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 const schema = z.object({
   titulo: z.string().trim().min(1),
@@ -28,9 +29,9 @@ function nullable(v?: string) {
   return t ? t : null;
 }
 
-async function ensureInternalAllyProfileId() {
+async function ensureInternalAllyProfileId(tenantId: string) {
   const existing = await prisma.allyProfile.findFirst({
-    where: { isInternal: true },
+    where: { isInternal: true, tenantId },
     select: { id: true },
   });
   if (existing) return existing.id;
@@ -61,8 +62,8 @@ async function ensureInternalAllyProfileId() {
 
   const internalProfile = await prisma.allyProfile.upsert({
     where: { userId: internalUser.id },
-    update: { isInternal: true, status: "KYC_APPROVED" },
-    create: { userId: internalUser.id, isInternal: true, status: "KYC_APPROVED" },
+    update: { tenantId, isInternal: true, status: "KYC_APPROVED" },
+    create: { tenantId, userId: internalUser.id, isInternal: true, status: "KYC_APPROVED" },
     select: { id: true },
   });
 
@@ -86,11 +87,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "Datos invalidos." }, { status: 400 });
   }
 
-  const internalAllyProfileId = await ensureInternalAllyProfileId();
+  const tenantId = requireTenantId(user);
+  const internalAllyProfileId = await ensureInternalAllyProfileId(tenantId);
 
   const input = parsed.data;
   const property = await prisma.property.create({
     data: {
+      tenantId,
       allyProfileId: internalAllyProfileId,
       titulo: input.titulo,
       descripcion: input.descripcion,
@@ -112,6 +115,7 @@ export async function POST(req: Request) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "property.create",
     entidadTipo: "property",
