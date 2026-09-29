@@ -6,6 +6,7 @@ import { getSiteBranding } from "@/lib/site-branding";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 type Counts = {
   pendingWithdrawals: number;
@@ -127,6 +128,7 @@ function AdminNav(props: {
 export default async function AdminLayout(props: { children: React.ReactNode }) {
   const actor = await requireRole(["ADMIN", "ROOT"]);
   const isRoot = actor.roles.includes("ROOT");
+  const tenantId = requireTenantId(actor);
   const branding = await getSiteBranding();
 
   const counts: Counts = {
@@ -138,10 +140,10 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
 
   try {
     const [w, p, c, k] = await Promise.all([
-      prisma.withdrawalRequest.count({ where: { status: "PENDING" } }),
-      prisma.property.count({ where: { status: "PENDING_APPROVAL" } }),
-      prisma.allyContract.count({ where: { status: "PENDING" } }),
-      prisma.allyProfile.count({ where: { status: "PENDING_KYC" } }),
+      prisma.withdrawalRequest.count({ where: { status: "PENDING", allyProfile: { tenantId } } }),
+      prisma.property.count({ where: { tenantId, status: "PENDING_APPROVAL" } }),
+      prisma.allyContract.count({ where: { status: "PENDING", allyProfile: { tenantId } } }),
+      prisma.allyProfile.count({ where: { tenantId, status: "PENDING_KYC" } }),
     ]);
     counts.pendingWithdrawals = w;
     counts.pendingProperties = p;
