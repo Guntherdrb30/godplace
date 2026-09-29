@@ -27,7 +27,7 @@ export default async function AdminPage() {
     <Container>
       <h1 className="font-[var(--font-display)] text-3xl tracking-tight">Resumen</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Operación de Godplaces. (ADMIN/ROOT). Acciones registradas en audit_logs.
+        Operación de la inmobiliaria activa en METRORA. Acciones registradas en audit_logs.
       </p>
 
       <div className="mt-8 grid gap-5 md:grid-cols-3">
