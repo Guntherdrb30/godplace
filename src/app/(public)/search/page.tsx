@@ -24,6 +24,7 @@ export default async function SearchPage(props: {
   const items = await prisma.property.findMany({
     where: {
       status: "PUBLISHED",
+      tenant: { status: "ACTIVE" },
       ...(ciudad
         ? {
             ciudad: { contains: ciudad, mode: "insensitive" },
@@ -35,7 +36,10 @@ export default async function SearchPage(props: {
           }
         : {}),
     },
-    include: { images: { orderBy: { orden: "asc" }, take: 1 } },
+    include: {
+      images: { orderBy: { orden: "asc" }, take: 1 },
+      tenant: { select: { name: true, status: true } },
+    },
     orderBy: { updatedAt: "desc" },
     take: 60,
   });
@@ -90,6 +94,7 @@ export default async function SearchPage(props: {
                 currency={p.currency}
                 pricePerNightCents={p.pricePerNightCents}
                 imageUrl={p.images[0]?.url ?? null}
+                agencyName={p.tenant.name}
               />
             ))}
           </div>
