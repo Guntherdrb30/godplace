@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       where: { id: parsed.data.propertyId },
       select: {
         id: true,
+        tenantId: true,
         status: true,
         currency: true,
         pricePerNightCents: true,
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
 
       return tx.booking.create({
         data: {
+          tenantId: property.tenantId,
           status: "DRAFT",
           propertyId: property.id,
           userId: user.id,
@@ -95,6 +97,7 @@ export async function POST(req: Request) {
     });
 
     await registrarAuditoria({
+      tenantId: property.tenantId,
       actorUserId: user.id,
       accion: "booking.create_draft",
       entidadTipo: "booking",
