@@ -57,6 +57,10 @@ function AdminNav(props: {
             label="Propiedades"
             badge={props.counts.pendingProperties}
           />
+          <NavLink href="/admin/publicaciones" label="Publicaciones" />
+          <NavLink href="/admin/crm" label="CRM" />
+          <NavLink href="/admin/propietarios" label="Propietarios" />
+          <NavLink href="/admin/agentes" label="Agentes" />
           <NavLink href="/admin/reservas" label="Reservas" />
           <NavLink
             href="/admin/withdrawals"
