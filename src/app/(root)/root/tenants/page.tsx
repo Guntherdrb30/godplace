@@ -72,8 +72,18 @@ async function crearTenant(formData: FormData) {
     metadata: { slug: tenant.slug, name: tenant.name },
   });
 
+  const jar = await cookies();
+  jar.set(COOKIE_ACTIVE_TENANT, tenant.id, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+
   revalidatePath("/root/tenants");
   revalidatePath("/root");
+  redirect("/admin/onboarding");
 }
 
 async function cambiarTenant(formData: FormData) {
@@ -101,7 +111,7 @@ async function cambiarTenant(formData: FormData) {
     maxAge: 60 * 60 * 24 * 30,
   });
 
-  redirect("/admin");
+  redirect("/admin/onboarding");
 }
 
 async function toggleTenant(formData: FormData) {
