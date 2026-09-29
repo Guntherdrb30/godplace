@@ -134,6 +134,19 @@ async function main() {
   const settings = [
     { key: "platform_fee_rate", value: 0.12 },
     { key: "currency_default", value: "USD" },
+    {
+      key: "site_branding",
+      value: {
+        brandName: "METRORA",
+        agentName: "METRORA AI",
+        logoUrl: "/metrora-mark.svg",
+        logoPathname: null,
+        colors: {
+          primaryHsl: "221 83% 53%",
+          secondaryHsl: "222 47% 16%",
+        },
+      },
+    },
   ];
 
   for (const s of settings) {
