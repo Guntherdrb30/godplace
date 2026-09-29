@@ -35,7 +35,7 @@ export function HomeAiChat() {
     {
       role: "assistant",
       content:
-        `Soy ${god.branding.agentName}. Describe qué alojamiento buscas (ciudad, fechas, huéspedes, presupuesto, amenities) y te muestro opciones reales del catálogo.`,
+        `Soy ${god.branding.agentName}. Describe qué propiedad buscas: compra, alquiler temporal, residencial o comercial; ciudad, presupuesto y características. Te mostraré publicaciones reales del marketplace.`,
     },
   ]);
   const [conectando, setConectando] = React.useState(false);
@@ -144,7 +144,7 @@ export function HomeAiChat() {
                 id="home-ai"
                 value={texto}
                 onChange={(e) => setTexto(e.target.value)}
-                placeholder="Ej: Apartamento para 4 personas, 2 noches en la playa, con vista al mar en Tucacas"
+                placeholder="Ej: Apartamento en venta en Valencia hasta USD 120.000, 3 habitaciones y 2 puestos de estacionamiento"
                 rows={3}
               />
               <div className="flex items-center justify-between gap-2">
