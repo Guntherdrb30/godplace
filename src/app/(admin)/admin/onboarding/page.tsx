@@ -147,7 +147,7 @@ export default async function OnboardingPage() {
       where: {
         tenantId,
         isActive: true,
-        role: { in: ["OWNER", "ADMIN"] },
+        role: "ADMIN",
       },
     }),
     prisma.agentProfile.count({ where: { tenantId, isActive: true } }),
