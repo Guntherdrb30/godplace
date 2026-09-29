@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,10 @@ const operationLabels: Record<string, string> = {
 export function MarketplaceLeadForm(props: {
   propertyId: string;
   agencyName: string;
+  agencyLogoUrl?: string | null;
+  agencyPhone?: string | null;
+  agencyWhatsapp?: string | null;
+  agencyWebsiteUrl?: string | null;
   listings: ListingOption[];
   initialListingId?: string | null;
 }) {
@@ -97,7 +102,35 @@ export function MarketplaceLeadForm(props: {
   return (
     <div className="rounded-3xl border bg-white/85 p-6 shadow-suave">
       <div className="text-sm text-muted-foreground">Representada por</div>
-      <div className="mt-1 text-lg font-semibold text-foreground">{props.agencyName}</div>
+      <div className="mt-2 flex items-center gap-3">
+        {props.agencyLogoUrl ? (
+          <Image
+            src={props.agencyLogoUrl}
+            alt={`Logo de ${props.agencyName}`}
+            width={42}
+            height={42}
+            className="rounded-xl border bg-white object-contain p-1"
+            unoptimized
+          />
+        ) : null}
+        <div>
+          <div className="text-lg font-semibold text-foreground">{props.agencyName}</div>
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            {props.agencyPhone ? <span>{props.agencyPhone}</span> : null}
+            {props.agencyWhatsapp ? <span>WhatsApp: {props.agencyWhatsapp}</span> : null}
+          </div>
+        </div>
+      </div>
+      {props.agencyWebsiteUrl ? (
+        <a
+          href={props.agencyWebsiteUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 inline-block text-xs font-medium text-brand-primary hover:underline"
+        >
+          Sitio web de la inmobiliaria
+        </a>
+      ) : null}
 
       <form onSubmit={submit} className="mt-5 grid gap-4">
         {props.listings.length > 0 ? (
