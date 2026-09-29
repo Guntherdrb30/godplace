@@ -19,6 +19,7 @@ import { isAllyFullyApproved } from "@/lib/ally/approval";
 import { sendEmail } from "@/lib/email";
 import type { PropertyOperationType } from "@prisma/client";
 import { PROPERTY_CONTRACT_TERMS_VERSION } from "@/lib/legal";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,7 @@ function buildDireccion(input: {
 async function actualizar(formData: FormData) {
   "use server";
   const user = await requireRole(["ALIADO"]);
+  const tenantId = requireTenantId(user);
   if (!user.allyProfileId) throw new Error("No tienes perfil de aliado.");
 
   const ok = await isAllyFullyApproved(user.allyProfileId);
@@ -63,8 +65,8 @@ async function actualizar(formData: FormData) {
   const price = Number.parseInt(String(formData.get("pricePerNightCents") || "0"), 10) || 0;
   const maxGuests = Number.parseInt(String(formData.get("huespedesMax") || "1"), 10) || 1;
 
-  const prop = await prisma.property.findUnique({
-    where: { id },
+  const prop = await prisma.property.findFirst({
+    where: { id, tenantId },
     select: { allyProfileId: true, status: true },
   });
   if (!prop || prop.allyProfileId !== user.allyProfileId) throw new Error("No autorizado.");
@@ -92,6 +94,7 @@ async function actualizar(formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "ally_property.update",
     entidadTipo: "property",
@@ -105,6 +108,7 @@ async function actualizar(formData: FormData) {
 async function enviarARevision(formData: FormData) {
   "use server";
   const user = await requireRole(["ALIADO"]);
+  const tenantId = requireTenantId(user);
   if (!user.allyProfileId) throw new Error("No tienes perfil de aliado.");
 
   const ok = await isAllyFullyApproved(user.allyProfileId);
@@ -113,8 +117,8 @@ async function enviarARevision(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Falta id.");
 
-  const p = await prisma.property.findUnique({
-    where: { id },
+  const p = await prisma.property.findFirst({
+    where: { id, tenantId },
     include: { images: true, allyProfile: { include: { user: true } } },
   });
   if (!p || p.allyProfileId !== user.allyProfileId) throw new Error("No autorizado.");
@@ -144,6 +148,7 @@ async function enviarARevision(formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "ally_property.submit_for_review",
     entidadTipo: "property",
@@ -168,6 +173,7 @@ async function enviarARevision(formData: FormData) {
 
 export default async function AliadoPropiedadEditPage(props: { params: Promise<{ id: string }> }) {
   const user = await requireRole(["ALIADO"]);
+  const tenantId = requireTenantId(user);
   if (!user.allyProfileId) notFound();
 
   const ok = await isAllyFullyApproved(user.allyProfileId);
@@ -190,8 +196,8 @@ export default async function AliadoPropiedadEditPage(props: { params: Promise<{
   }
 
   const { id } = await props.params;
-  const p = await prisma.property.findUnique({
-    where: { id },
+  const p = await prisma.property.findFirst({
+    where: { id, tenantId },
     include: { images: { orderBy: { orden: "asc" } } },
   });
   if (!p || p.allyProfileId !== user.allyProfileId) notFound();
