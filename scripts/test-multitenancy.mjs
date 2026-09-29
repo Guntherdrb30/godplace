@@ -119,6 +119,32 @@ async function main() {
           },
         });
 
+        const listingA = await tx.listing.create({
+          data: {
+            tenantId: tenantA.id,
+            propertyId: propertyA.id,
+            operationType: "SALE",
+            status: "PUBLISHED",
+            title: "QA Venta A",
+            priceCents: 25000000,
+            currency: "USD",
+            publishedAt: new Date(),
+          },
+        });
+
+        const listingB = await tx.listing.create({
+          data: {
+            tenantId: tenantB.id,
+            propertyId: propertyB.id,
+            operationType: "SHORT_RENT",
+            status: "PUBLISHED",
+            title: "QA Temporal B",
+            priceCents: 17500,
+            currency: "USD",
+            publishedAt: new Date(),
+          },
+        });
+
         const checkIn = new Date("2030-01-10T00:00:00.000Z");
         const checkOut = new Date("2030-01-12T00:00:00.000Z");
 
@@ -193,6 +219,18 @@ async function main() {
         assert(crossPropertyAtoB === null, "Tenant A pudo leer una propiedad del Tenant B.");
         assert(crossPropertyBtoA === null, "Tenant B pudo leer una propiedad del Tenant A.");
 
+        const listingsA = await tx.listing.findMany({ where: { tenantId: tenantA.id } });
+        const listingsB = await tx.listing.findMany({ where: { tenantId: tenantB.id } });
+        assert(listingsA.length === 1 && listingsA[0].id === listingA.id, "Tenant A no ve exactamente su listing.");
+        assert(listingsB.length === 1 && listingsB[0].id === listingB.id, "Tenant B no ve exactamente su listing.");
+        assert(listingsA[0].operationType === "SALE" && listingsA[0].priceCents === 25000000, "Listing A no conserva operación/precio comercial.");
+        assert(listingsB[0].operationType === "SHORT_RENT" && listingsB[0].priceCents === 17500, "Listing B no conserva operación/precio comercial.");
+
+        const crossListing = await tx.listing.findFirst({
+          where: { id: listingB.id, tenantId: tenantA.id },
+        });
+        assert(crossListing === null, "Tenant A pudo leer un listing del Tenant B.");
+
         const bookingsA = await tx.booking.findMany({ where: { tenantId: tenantA.id } });
         const bookingsB = await tx.booking.findMany({ where: { tenantId: tenantB.id } });
         assert(bookingsA.length === 1 && bookingsA[0].id === bookingA.id, "Tenant A no ve exactamente su reserva.");
@@ -230,19 +268,23 @@ async function main() {
         assert(logsA.length === 1 && logsA[0].accion === "qa.tenant_a", "Auditoría A mezcló datos.");
         assert(logsB.length === 1 && logsB[0].accion === "qa.tenant_b", "Auditoría B mezcló datos.");
 
-        const federatedMarketplace = await tx.property.findMany({
+        const federatedMarketplace = await tx.listing.findMany({
           where: {
-            id: { in: [propertyA.id, propertyB.id] },
+            id: { in: [listingA.id, listingB.id] },
             status: "PUBLISHED",
+            tenant: { is: { status: "ACTIVE" } },
+            property: { status: "PUBLISHED" },
           },
-          orderBy: { titulo: "asc" },
+          orderBy: { title: "asc" },
         });
-        assert(federatedMarketplace.length === 2, "El catálogo federado no puede ver publicaciones de ambos tenants.");
+        assert(federatedMarketplace.length === 2, "El marketplace federado no puede ver listings de ambos tenants.");
 
         assertionsCompleted = true;
 
         console.log("[METRORA][ISOLATION] PASS");
         console.log("[METRORA][ISOLATION] Tenant A/B properties isolated");
+        console.log("[METRORA][ISOLATION] Tenant A/B listings isolated");
+        console.log("[METRORA][ISOLATION] Listing operation and price independent from legacy property price");
         console.log("[METRORA][ISOLATION] Tenant A/B bookings isolated");
         console.log("[METRORA][ISOLATION] Tenant memberships isolated");
         console.log("[METRORA][ISOLATION] Cross-tenant update blocked by scoped query");
