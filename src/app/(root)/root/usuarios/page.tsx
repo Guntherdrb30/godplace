@@ -10,6 +10,7 @@ import { requireRole } from "@/lib/auth/guards";
 import { registrarAuditoria } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { labelUserStatus } from "@/lib/labels";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export const metadata = buildMetadata({ title: "Usuarios críticos", path: "/roo
 async function crearUsuarioCritico(formData: FormData) {
   "use server";
   const actor = await requireRole(["ROOT"]);
+  const tenantId = requireTenantId(actor);
 
   const email = String(formData.get("email") || "").toLowerCase().trim();
   const password = String(formData.get("password") || "");
@@ -38,10 +40,18 @@ async function crearUsuarioCritico(formData: FormData) {
       nombre,
       passwordHash,
       roles: { create: [{ roleId: roleRow.id }] },
+      tenantMemberships: {
+        create: [{
+          tenantId,
+          role: role === "ROOT" ? "OWNER" : "ADMIN",
+          isActive: true,
+        }],
+      },
     },
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "critical_user.create",
     entidadTipo: "user",

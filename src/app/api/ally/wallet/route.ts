@@ -4,12 +4,20 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 
 export async function GET(req: Request) {
   const user = await getCurrentUser();
-  if (!user || !user.roles.includes("ALIADO") || !user.allyProfileId) {
+  if (!user || !user.roles.includes("ALIADO") || !user.allyProfileId || !user.tenantId) {
     return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
   }
 
   const url = new URL(req.url);
   const limit = Math.min(200, Math.max(1, Number.parseInt(url.searchParams.get("limit") || "50", 10) || 50));
+
+  const ally = await prisma.allyProfile.findFirst({
+    where: { id: user.allyProfileId, tenantId: user.tenantId },
+    select: { id: true },
+  });
+  if (!ally) {
+    return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
+  }
 
   const wallet = await prisma.allyWallet.upsert({
     where: { allyProfileId: user.allyProfileId },

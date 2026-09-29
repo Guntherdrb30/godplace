@@ -6,6 +6,7 @@ import { getSiteBranding } from "@/lib/site-branding";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 type Counts = {
   pendingWithdrawals: number;
@@ -51,11 +52,16 @@ function AdminNav(props: {
         </div>
         <div className="mt-2 space-y-1">
           <NavLink href="/admin" label="Resumen" />
+          <NavLink href="/admin/onboarding" label="Onboarding" />
           <NavLink
             href="/admin/propiedades"
             label="Propiedades"
             badge={props.counts.pendingProperties}
           />
+          <NavLink href="/admin/publicaciones" label="Publicaciones" />
+          <NavLink href="/admin/crm" label="CRM" />
+          <NavLink href="/admin/propietarios" label="Propietarios" />
+          <NavLink href="/admin/agentes" label="Agentes" />
           <NavLink href="/admin/reservas" label="Reservas" />
           <NavLink
             href="/admin/withdrawals"
@@ -89,6 +95,7 @@ function AdminNav(props: {
         </div>
         <div className="mt-2 space-y-1">
           <NavLink href="/admin/usuarios" label="Usuarios" />
+          <NavLink href="/admin/identidad" label="Identidad" />
           <NavLink href="/admin/visual" label="Visual" />
         </div>
       </div>
@@ -127,6 +134,7 @@ function AdminNav(props: {
 export default async function AdminLayout(props: { children: React.ReactNode }) {
   const actor = await requireRole(["ADMIN", "ROOT"]);
   const isRoot = actor.roles.includes("ROOT");
+  const tenantId = requireTenantId(actor);
   const branding = await getSiteBranding();
 
   const counts: Counts = {
@@ -138,10 +146,10 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
 
   try {
     const [w, p, c, k] = await Promise.all([
-      prisma.withdrawalRequest.count({ where: { status: "PENDING" } }),
-      prisma.property.count({ where: { status: "PENDING_APPROVAL" } }),
-      prisma.allyContract.count({ where: { status: "PENDING" } }),
-      prisma.allyProfile.count({ where: { status: "PENDING_KYC" } }),
+      prisma.withdrawalRequest.count({ where: { status: "PENDING", allyProfile: { tenantId } } }),
+      prisma.property.count({ where: { tenantId, status: "PENDING_APPROVAL" } }),
+      prisma.allyContract.count({ where: { status: "PENDING", allyProfile: { tenantId } } }),
+      prisma.allyProfile.count({ where: { tenantId, status: "PENDING_KYC" } }),
     ]);
     counts.pendingWithdrawals = w;
     counts.pendingProperties = p;
@@ -157,7 +165,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
         <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r bg-white/70 px-4 py-5 backdrop-blur lg:block">
           <Link href="/" className="flex items-center gap-3 rounded-2xl px-2 py-2 hover:bg-secondary/40">
             <Image
-              src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+              src={branding.logoUrl || "/metrora-mark.svg"}
               alt={`Logo de ${branding.brandName}.`}
               width={34}
               height={34}
@@ -191,7 +199,7 @@ export default async function AdminLayout(props: { children: React.ReactNode }) 
                   <SheetContent side="left" className="w-[320px] p-4">
                     <div className="flex items-center gap-3">
                       <Image
-                        src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+                        src={branding.logoUrl || "/metrora-mark.svg"}
                         alt={`Logo de ${branding.brandName}.`}
                         width={34}
                         height={34}

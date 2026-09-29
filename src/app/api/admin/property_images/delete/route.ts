@@ -12,21 +12,22 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   const isStaff = !!user && (user.roles.includes("ADMIN") || user.roles.includes("ROOT"));
   const isAliado = !!user && user.roles.includes("ALIADO") && !!user.allyProfileId;
+  const tenantId = user?.tenantId ?? null;
 
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
+  if (!user || !tenantId) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
 
-  const img = await prisma.propertyImage.findUnique({ where: { id: parsed.data.imageId } });
+  const img = await prisma.propertyImage.findFirst({
+    where: { id: parsed.data.imageId, property: { tenantId } },
+    include: { property: { select: { allyProfileId: true } } },
+  });
   if (!img) return NextResponse.json({ ok: false, message: "No existe." }, { status: 404 });
 
   if (!isStaff) {
     if (!isAliado) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
-    const prop = await prisma.property.findUnique({
-      where: { id: img.propertyId },
-      select: { allyProfileId: true },
-    });
-    if (!prop || prop.allyProfileId !== user.allyProfileId) {
+    if (img.property.allyProfileId !== user.allyProfileId) {
       return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
     }
   }
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
   await prisma.propertyImage.delete({ where: { id: img.id } });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "property_image.delete",
     entidadTipo: "property_image",

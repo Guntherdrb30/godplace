@@ -10,7 +10,7 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user || !user.roles.includes("ALIADO") || !user.allyProfileId) {
+  if (!user || !user.roles.includes("ALIADO") || !user.allyProfileId || !user.tenantId) {
     return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
   }
 
@@ -18,8 +18,8 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
 
-  const prop = await prisma.property.findUnique({
-    where: { id: parsed.data.propertyId },
+  const prop = await prisma.property.findFirst({
+    where: { id: parsed.data.propertyId, tenantId: user.tenantId },
     select: { id: true, allyProfileId: true, status: true, ownershipContractPathname: true },
   });
   if (!prop || prop.allyProfileId !== user.allyProfileId) {
@@ -42,6 +42,7 @@ export async function POST(req: Request) {
   });
 
   await registrarAuditoria({
+    tenantId: user.tenantId,
     actorUserId: user.id,
     accion: "ally_property_contract.delete",
     entidadTipo: "property",

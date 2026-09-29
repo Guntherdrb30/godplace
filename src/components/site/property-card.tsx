@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format";
+import { listingOperationLabel, listingPriceSuffix } from "@/lib/listings";
 
 export function PropertyCard(props: {
   id: string;
@@ -9,11 +10,15 @@ export function PropertyCard(props: {
   ciudad: string;
   estadoRegion: string;
   currency: string;
-  pricePerNightCents: number;
+  priceCents: number;
+  operationType: string;
+  listingId: string;
   imageUrl?: string | null;
+  agencyName?: string | null;
+  agencyLogoUrl?: string | null;
 }) {
   return (
-    <Link href={`/property/${props.id}`} className="group block focus-visible:rounded-2xl">
+    <Link href={`/property/${props.id}?listing=${props.listingId}`} className="group block focus-visible:rounded-2xl">
       <Card className="overflow-hidden rounded-2xl border bg-white/80 transition-shadow group-hover:shadow-suave">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
           <Image
@@ -28,13 +33,31 @@ export function PropertyCard(props: {
           <div className="text-sm text-muted-foreground">
             {props.ciudad}, {props.estadoRegion}
           </div>
+          {props.agencyName ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {props.agencyLogoUrl ? (
+                <Image
+                  src={props.agencyLogoUrl}
+                  alt={`Logo de ${props.agencyName}`}
+                  width={20}
+                  height={20}
+                  className="rounded-md object-contain"
+                  unoptimized
+                />
+              ) : null}
+              <span>Por {props.agencyName}</span>
+            </div>
+          ) : null}
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="text-sm">
+          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {listingOperationLabel(props.operationType)}
+          </div>
+          <div className="mt-1 text-sm">
             <span className="font-medium text-foreground">
-              {formatMoney(props.pricePerNightCents, props.currency)}
+              {formatMoney(props.priceCents, props.currency)}
             </span>{" "}
-            <span className="text-muted-foreground">por noche</span>
+            <span className="text-muted-foreground">{listingPriceSuffix(props.operationType)}</span>
           </div>
         </CardContent>
       </Card>

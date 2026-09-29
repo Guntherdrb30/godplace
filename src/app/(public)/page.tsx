@@ -20,10 +20,19 @@ export const metadata = buildMetadata({
 export default async function HomePage() {
   const branding = await getSiteBranding();
   const destacados = dbDisponible()
-    ? await prisma.property.findMany({
-        where: { status: "PUBLISHED" },
-        include: { images: { orderBy: { orden: "asc" }, take: 1 } },
-        orderBy: { updatedAt: "desc" },
+    ? await prisma.listing.findMany({
+        where: {
+          status: "PUBLISHED",
+          tenant: { is: { status: "ACTIVE" } },
+          property: { status: "PUBLISHED" },
+        },
+        include: {
+          tenant: { select: { name: true, logoUrl: true } },
+          property: {
+            include: { images: { orderBy: { orden: "asc" }, take: 1 } },
+          },
+        },
+        orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
         take: 6,
       })
     : [];
@@ -42,7 +51,7 @@ export default async function HomePage() {
                 Destacados
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Propiedades publicadas y aprobadas por el operador central.
+                Publicaciones activas de las inmobiliarias participantes.
               </p>
             </div>
             <Button asChild variant="outline">
@@ -56,7 +65,7 @@ export default async function HomePage() {
             </div>
           ) : destacados.length === 0 ? (
             <div className="mt-6 rounded-2xl border bg-white/70 p-8 text-sm text-muted-foreground">
-              Aún no hay propiedades publicadas. Si eres ADMIN/ROOT, carga el inventario
+              Aún no hay publicaciones activas. Si eres ADMIN/ROOT, gestiona el inventario
               en <Link className="underline" href="/admin">/admin</Link>.
             </div>
           ) : (
@@ -64,13 +73,17 @@ export default async function HomePage() {
               {destacados.map((p) => (
                 <PropertyCard
                   key={p.id}
-                  id={p.id}
-                  titulo={p.titulo}
-                  ciudad={p.ciudad}
-                  estadoRegion={p.estadoRegion}
+                  id={p.property.id}
+                  listingId={p.id}
+                  titulo={p.title}
+                  ciudad={p.property.ciudad}
+                  estadoRegion={p.property.estadoRegion}
                   currency={p.currency}
-                  pricePerNightCents={p.pricePerNightCents}
-                  imageUrl={p.images[0]?.url ?? null}
+                  priceCents={p.priceCents}
+                  operationType={p.operationType}
+                  imageUrl={p.property.images[0]?.url ?? null}
+                  agencyName={p.tenant.name}
+                  agencyLogoUrl={p.tenant.logoUrl}
                 />
               ))}
             </div>
@@ -85,15 +98,15 @@ export default async function HomePage() {
             {[
               {
                 t: "Explora",
-                d: "Busca y compara propiedades publicadas en Venezuela.",
+                d: "Busca y compara venta, alquiler temporal, residencial y comercial.",
               },
               {
-                t: "Cotiza",
-                d: "Selecciona fechas y huéspedes. Guardamos el snapshot del precio.",
+                t: "Conecta",
+                d: "Solicita información y tu consulta entra al CRM de la inmobiliaria responsable.",
               },
               {
-                t: "Reserva",
-                d: "Creamos un borrador y luego confirmación. Pagos reales: TODO MVP.",
+                t: "Avanza",
+                d: "Agenda visitas, recibe ofertas o reserva alquiler temporal cuando corresponda.",
               },
             ].map((x) => (
               <div key={x.t} className="rounded-2xl border bg-white/80 p-6 shadow-suave">
@@ -131,11 +144,10 @@ export default async function HomePage() {
         <section className="mt-16 mb-2">
           <div className="rounded-3xl border bg-brand-secondary p-10 text-white shadow-suave">
             <h2 className="font-[var(--font-display)] text-3xl tracking-tight">
-              Publica y opera con control central
+              La red inmobiliaria inteligente
             </h2>
             <p className="mt-3 max-w-2xl text-white/85">
-              {branding.brandName}. está diseñado para un catálogo aprobado y una operación con roles
-              (ROOT/ADMIN/ALIADO/CLIENTE) y verificación manual.
+              {branding.brandName} conecta inmobiliarias, agentes y clientes en un marketplace común con CRM, IA y operación multiempresa.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="brand">

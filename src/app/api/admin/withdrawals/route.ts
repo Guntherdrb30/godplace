@@ -6,14 +6,17 @@ import type { WithdrawalStatus } from "@prisma/client";
 export async function GET(req: Request) {
   const user = await getCurrentUser();
   const isStaff = !!user && (user.roles.includes("ADMIN") || user.roles.includes("ROOT"));
-  if (!isStaff) {
+  const tenantId = user?.tenantId ?? null;
+  if (!isStaff || !tenantId) {
     return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
   }
 
   const url = new URL(req.url);
   const status = url.searchParams.get("status")?.trim() || "";
   const valid: WithdrawalStatus[] = ["PENDING", "APPROVED", "REJECTED", "PAID"];
-  const where = valid.includes(status as WithdrawalStatus) ? { status: status as WithdrawalStatus } : {};
+  const where = valid.includes(status as WithdrawalStatus)
+    ? { status: status as WithdrawalStatus, allyProfile: { tenantId } }
+    : { allyProfile: { tenantId } };
 
   const items = await prisma.withdrawalRequest.findMany({
     where,

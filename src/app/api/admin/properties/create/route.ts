@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { registrarAuditoria } from "@/lib/audit";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 const schema = z.object({
   titulo: z.string().trim().min(1),
@@ -28,14 +29,22 @@ function nullable(v?: string) {
   return t ? t : null;
 }
 
-async function ensureInternalAllyProfileId() {
+async function ensureInternalAllyProfileId(tenantId: string) {
   const existing = await prisma.allyProfile.findFirst({
-    where: { isInternal: true },
+    where: { isInternal: true, tenantId },
     select: { id: true },
   });
   if (existing) return existing.id;
 
-  const email = (process.env.SEED_INTERNAL_EMAIL || "inventario@trends172tech.com").toLowerCase().trim();
+  const tenant = await prisma.tenant.findUniqueOrThrow({
+    where: { id: tenantId },
+    select: { slug: true, isDefault: true },
+  });
+
+  const safeSlug = tenant.slug.replace(/[^a-z0-9-]/gi, "-").toLowerCase();
+  const email = tenant.isDefault
+    ? (process.env.SEED_INTERNAL_EMAIL || "inventario@trends172tech.com").toLowerCase().trim()
+    : `inventario+${safeSlug}@trends172tech.com`;
   const rawPassword = crypto.randomBytes(18).toString("base64url");
   const passwordHash = await bcrypt.hash(rawPassword, 12);
 
@@ -48,8 +57,13 @@ async function ensureInternalAllyProfileId() {
 
   const internalUser = await prisma.user.upsert({
     where: { email },
-    update: { nombre: "Inventario interno", passwordHash, status: "ACTIVE" },
-    create: { email, nombre: "Inventario interno", passwordHash, status: "ACTIVE" },
+    update: { nombre: `Inventario interno · ${tenant.slug}`, passwordHash, status: "ACTIVE" },
+    create: {
+      email,
+      nombre: `Inventario interno · ${tenant.slug}`,
+      passwordHash,
+      status: "ACTIVE",
+    },
     select: { id: true },
   });
 
@@ -59,17 +73,24 @@ async function ensureInternalAllyProfileId() {
     create: { userId: internalUser.id, roleId: aliadoRole.id },
   });
 
-  const internalProfile = await prisma.allyProfile.upsert({
-    where: { userId: internalUser.id },
-    update: { isInternal: true, status: "KYC_APPROVED" },
-    create: { userId: internalUser.id, isInternal: true, status: "KYC_APPROVED" },
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId, userId: internalUser.id } },
+    update: { role: "MEMBER", isActive: true },
+    create: { tenantId, userId: internalUser.id, role: "MEMBER", isActive: true },
+  });
+
+  const internalProfile = await prisma.allyProfile.create({
+    data: {
+      tenantId,
+      userId: internalUser.id,
+      isInternal: true,
+      status: "KYC_APPROVED",
+    },
     select: { id: true },
   });
 
-  await prisma.allyWallet.upsert({
-    where: { allyProfileId: internalProfile.id },
-    update: {},
-    create: { allyProfileId: internalProfile.id },
+  await prisma.allyWallet.create({
+    data: { allyProfileId: internalProfile.id },
   });
 
   return internalProfile.id;
@@ -86,11 +107,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "Datos invalidos." }, { status: 400 });
   }
 
-  const internalAllyProfileId = await ensureInternalAllyProfileId();
+  const tenantId = requireTenantId(user);
+  const internalAllyProfileId = await ensureInternalAllyProfileId(tenantId);
 
   const input = parsed.data;
   const property = await prisma.property.create({
     data: {
+      tenantId,
       allyProfileId: internalAllyProfileId,
       titulo: input.titulo,
       descripcion: input.descripcion,
@@ -112,6 +135,7 @@ export async function POST(req: Request) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "property.create",
     entidadTipo: "property",

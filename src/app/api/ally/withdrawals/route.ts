@@ -20,7 +20,7 @@ function maskFromLast4(last4: string): string {
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user || !user.roles.includes("ALIADO") || !user.allyProfileId) {
+  if (!user || !user.roles.includes("ALIADO") || !user.allyProfileId || !user.tenantId) {
     return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
   }
 
@@ -35,8 +35,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "El retiro mínimo es 100 USD." }, { status: 400 });
   }
 
-  const ally = await prisma.allyProfile.findUnique({
-    where: { id: user.allyProfileId },
+  const ally = await prisma.allyProfile.findFirst({
+    where: { id: user.allyProfileId, tenantId: user.tenantId },
     include: { user: true },
   });
   if (!ally) return NextResponse.json({ ok: false, message: "No existe el perfil de aliado." }, { status: 404 });
@@ -81,6 +81,7 @@ export async function POST(req: Request) {
   });
 
   await registrarAuditoria({
+    tenantId: user.tenantId,
     actorUserId: user.id,
     accion: "withdrawal_request.create",
     entidadTipo: "withdrawal_request",

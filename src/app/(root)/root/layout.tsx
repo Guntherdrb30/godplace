@@ -20,6 +20,9 @@ export default async function RootAreaLayout(props: { children: React.ReactNode 
               <Link className="text-muted-foreground hover:text-foreground" href="/root">
                 Resumen
               </Link>
+              <Link className="text-muted-foreground hover:text-foreground" href="/root/tenants">
+                Inmobiliarias
+              </Link>
               <Link className="text-muted-foreground hover:text-foreground" href="/root/usuarios">
                 Usuarios críticos
               </Link>

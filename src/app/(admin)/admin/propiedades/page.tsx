@@ -11,6 +11,7 @@ import { requireRole } from "@/lib/auth/guards";
 import { registrarAuditoria } from "@/lib/audit";
 import { labelPropertyStatus } from "@/lib/labels";
 import { sendEmail } from "@/lib/email";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export const metadata = buildMetadata({ title: "Propiedades", path: "/admin/prop
 async function cambiarEstadoPropiedad(formData: FormData) {
   "use server";
   const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
 
   const id = String(formData.get("id") || "");
   const status = String(formData.get("status") || "");
@@ -27,8 +29,8 @@ async function cambiarEstadoPropiedad(formData: FormData) {
     throw new Error("Estado invalido.");
   }
 
-  const p = await prisma.property.findUnique({
-    where: { id },
+  const p = await prisma.property.findFirst({
+    where: { id, tenantId },
     include: { images: true, allyProfile: { include: { user: true } } },
   });
   if (!p) throw new Error("No existe.");
@@ -45,6 +47,7 @@ async function cambiarEstadoPropiedad(formData: FormData) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: actor.id,
     accion: "property.update_status",
     entidadTipo: "property",
@@ -68,9 +71,11 @@ async function cambiarEstadoPropiedad(formData: FormData) {
 }
 
 export default async function AdminPropiedadesPage() {
-  await requireRole(["ADMIN", "ROOT"]);
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
 
   const props = await prisma.property.findMany({
+    where: { tenantId },
     include: {
       images: { take: 1, orderBy: { orden: "asc" } },
       allyProfile: { include: { user: true } },

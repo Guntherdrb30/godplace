@@ -15,13 +15,13 @@ export type SiteBranding = {
 };
 
 const DEFAULT_BRANDING: SiteBranding = {
-  brandName: "Godplaces",
-  agentName: "God",
-  logoUrl: "/logo-godplaces-placeholder.svg",
+  brandName: "METRORA",
+  agentName: "METRORA AI",
+  logoUrl: "/metrora-mark.svg",
   logoPathname: null,
   colors: {
-    primaryHsl: "176 57% 45%",
-    secondaryHsl: "188 100% 17%",
+    primaryHsl: "221 83% 53%",
+    secondaryHsl: "222 47% 16%",
   },
 };
 

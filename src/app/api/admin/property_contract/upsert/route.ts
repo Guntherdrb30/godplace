@@ -13,14 +13,15 @@ const schema = z.object({
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   const isStaff = !!user && (user.roles.includes("ADMIN") || user.roles.includes("ROOT"));
-  if (!isStaff) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
+  const tenantId = user?.tenantId ?? null;
+  if (!isStaff || !tenantId) return NextResponse.json({ ok: false, message: "No autorizado." }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ ok: false, message: "Datos inválidos." }, { status: 400 });
 
-  const prop = await prisma.property.findUnique({
-    where: { id: parsed.data.propertyId },
+  const prop = await prisma.property.findFirst({
+    where: { id: parsed.data.propertyId, tenantId },
     select: { id: true, ownershipContractPathname: true },
   });
   if (!prop) return NextResponse.json({ ok: false, message: "No existe." }, { status: 404 });
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
   });
 
   await registrarAuditoria({
+    tenantId,
     actorUserId: user.id,
     accion: "admin_property_contract.upsert",
     entidadTipo: "property",

@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 export const metadata = buildMetadata({ title: "ROOT", path: "/root" });
 
 export default async function RootPage() {
-  const [users, roles, settings, logs] = await Promise.all([
+  const [tenants, users, roles, settings, logs] = await Promise.all([
+    prisma.tenant.count(),
     prisma.user.count(),
     prisma.role.count(),
     prisma.systemSetting.count(),
@@ -24,8 +25,9 @@ export default async function RootPage() {
         Gestión crítica: roles ROOT/ADMIN, settings globales, integraciones y auditoría avanzada.
       </p>
 
-      <div className="mt-8 grid gap-5 md:grid-cols-4">
+      <div className="mt-8 grid gap-5 md:grid-cols-5">
         {[
+          { t: "Inmobiliarias", v: tenants },
           { t: "Usuarios", v: users },
           { t: "Roles", v: roles },
           { t: "Configuración", v: settings },

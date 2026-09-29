@@ -8,6 +8,12 @@ import { firmarRbacToken } from "@/lib/auth/rbac-token";
 import { setCookieRbac } from "@/lib/auth/rbac-cookie";
 import { sendEmail } from "@/lib/email";
 import { buildAllyContractEmail } from "@/lib/contracts/ally";
+import {
+  DEFAULT_TENANT_ID,
+  DEFAULT_TENANT_LEGAL_NAME,
+  DEFAULT_TENANT_NAME,
+  DEFAULT_TENANT_SLUG,
+} from "@/lib/tenancy/constants";
 
 const schema = z
   .object({
@@ -126,6 +132,26 @@ export async function POST(req: Request) {
 
   try {
     const user = await prisma.$transaction(async (tx) => {
+      // El registro público entra inicialmente al tenant marketplace interno.
+      // El onboarding de nuevas inmobiliarias tendrá un flujo separado.
+      const defaultTenant = await tx.tenant.upsert({
+        where: { slug: DEFAULT_TENANT_SLUG },
+        update: {
+          name: DEFAULT_TENANT_NAME,
+          legalName: DEFAULT_TENANT_LEGAL_NAME,
+          status: "ACTIVE",
+          isDefault: true,
+        },
+        create: {
+          id: DEFAULT_TENANT_ID,
+          slug: DEFAULT_TENANT_SLUG,
+          name: DEFAULT_TENANT_NAME,
+          legalName: DEFAULT_TENANT_LEGAL_NAME,
+          status: "ACTIVE",
+          isDefault: true,
+        },
+      });
+
       // En producción, `prisma db seed` puede no ejecutarse. Para que el registro funcione
       // siempre, garantizamos roles base de forma idempotente.
       const roleCliente = await tx.role.upsert({
@@ -139,6 +165,7 @@ export async function POST(req: Request) {
       let allyProfile:
         | {
             create: {
+              tenantId: string;
               status: "PENDING_KYC";
               isInternal: false;
               wallet: { create: Record<string, never> };
@@ -166,6 +193,7 @@ export async function POST(req: Request) {
         rolesCreate.push({ roleId: roleAliado.id });
         allyProfile = {
           create: {
+            tenantId: defaultTenant.id,
             status: "PENDING_KYC",
             isInternal: false,
             wallet: { create: {} },
@@ -184,7 +212,7 @@ export async function POST(req: Request) {
         };
       }
 
-      return tx.user.create({
+      const createdUser = await tx.user.create({
         data: {
           email: parsed.data.email,
           username: parsed.data.username,
@@ -195,6 +223,17 @@ export async function POST(req: Request) {
         },
         include: { roles: { include: { role: true } }, allyProfile: true },
       });
+
+      await tx.tenantMembership.create({
+        data: {
+          tenantId: defaultTenant.id,
+          userId: createdUser.id,
+          role: "MEMBER",
+          isActive: true,
+        },
+      });
+
+      return createdUser;
     });
 
     // Si es aliado: exigir documentos KYC en el registro (cédula, selfie y RIF si aplica).

@@ -6,6 +6,7 @@ import { cotizarReserva } from "@/lib/pricing";
 
 const schema = z.object({
   propertyId: z.string().min(1),
+  listingId: z.string().min(1),
   checkIn: z.string().min(1),
   checkOut: z.string().min(1),
   guests: z.number().int().min(1).max(50),
@@ -18,20 +19,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: "Datos invalidos." }, { status: 400 });
   }
 
-  const property = await prisma.property.findUnique({
-    where: { id: parsed.data.propertyId },
-    select: {
-      id: true,
-      status: true,
-      currency: true,
-      pricePerNightCents: true,
-      huespedesMax: true,
+  const listing = await prisma.listing.findFirst({
+    where: {
+      id: parsed.data.listingId,
+      propertyId: parsed.data.propertyId,
+      status: "PUBLISHED",
+      operationType: "SHORT_RENT",
+      tenant: { is: { status: "ACTIVE" } },
+      property: { status: "PUBLISHED" },
+    },
+    include: {
+      property: {
+        select: { id: true, huespedesMax: true },
+      },
     },
   });
-  if (!property || property.status !== "PUBLISHED") {
+  if (!listing) {
     return NextResponse.json({ ok: false, message: "Propiedad no encontrada." }, { status: 404 });
   }
-  if (parsed.data.guests > property.huespedesMax) {
+  if (parsed.data.guests > listing.property.huespedesMax) {
     return NextResponse.json({ ok: false, message: "Excede el maximo de huespedes." }, { status: 400 });
   }
 
@@ -42,8 +48,8 @@ export async function POST(req: Request) {
   }
 
   const quote = await cotizarReserva({
-    pricePerNightCents: property.pricePerNightCents,
-    currency: property.currency,
+    pricePerNightCents: listing.priceCents,
+    currency: listing.currency,
     checkIn,
     checkOut,
     guests: parsed.data.guests,
@@ -53,7 +59,7 @@ export async function POST(req: Request) {
   }
 
   const conflict = await findAvailabilityConflict(prisma, {
-    propertyId: property.id,
+    propertyId: listing.property.id,
     checkIn,
     checkOut,
   });

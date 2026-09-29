@@ -7,19 +7,19 @@ function fallbackSlides(): HeroSlidePublic[] {
   return [
     {
       id: "fallback-1",
-      title: "Playas, montaña y ciudad",
-      subtitle: "Explora hospedajes aprobados y operados con control central.",
+      title: "Compra, alquila y descubre",
+      subtitle: "Explora propiedades publicadas por inmobiliarias dentro de la red METRORA.",
       ctaText: "Explorar propiedades",
       ctaHref: "/search",
       imageUrl: "/placeholder-propiedad.svg",
     },
     {
       id: "fallback-2",
-      title: "Reserva con confianza",
-      subtitle: "Verificación de aliados y auditoría de acciones operativas.",
+      title: "Una red inmobiliaria inteligente",
+      subtitle: "Marketplace, CRM, inteligencia artificial y recorridos 3D en una sola plataforma.",
       ctaText: "Cómo funciona",
       ctaHref: "/#como-funciona",
-      imageUrl: "/logo-godplaces-placeholder.svg",
+      imageUrl: "/metrora-mark.svg",
     },
   ];
 }

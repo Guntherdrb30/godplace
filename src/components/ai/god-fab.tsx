@@ -10,7 +10,7 @@ export function GodFab(props: { onClick: () => void; label?: string }) {
         type="button"
         onClick={props.onClick}
         className="h-12 rounded-full bg-marca-petroleo px-5 text-white shadow-suave hover:bg-[#003f48] focus-visible:ring-0"
-        aria-label={`Abrir chat con ${props.label || "God"}`}
+        aria-label={`Abrir chat con ${props.label || "METRORA AI"}`}
       >
         <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
         {props.label || "God"}

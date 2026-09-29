@@ -100,35 +100,50 @@ async function tool_search_properties(args: unknown) {
     .object({
       ciudad: z.string().trim().max(80).optional(),
       huespedes: z.number().int().min(1).max(50).optional(),
+      operationType: z.enum(["SALE","SHORT_RENT","LONG_RENT","COMMERCIAL_RENT"]).optional(),
+      propertyType: z.enum(["HOUSE","APARTMENT","TOWNHOUSE","LAND","OFFICE","COMMERCIAL","WAREHOUSE","BUILDING","FARM","HOTEL","VACATION","OTHER"]).optional(),
       limit: z.number().int().min(1).max(60).optional(),
     })
     .default({})
     .safeParse(args);
   if (!parsed.success) throw new Error("Filtros inválidos.");
 
-  const { ciudad, huespedes, limit } = parsed.data;
-  const props = await prisma.property.findMany({
+  const { ciudad, huespedes, operationType, propertyType, limit } = parsed.data;
+  const listings = await prisma.listing.findMany({
     where: {
       status: "PUBLISHED",
-      ...(ciudad ? { ciudad: { contains: ciudad, mode: "insensitive" } } : {}),
-      ...(huespedes ? { huespedesMax: { gte: huespedes } } : {}),
+      ...(operationType ? { operationType } : {}),
+      tenant: { is: { status: "ACTIVE" } },
+      property: {
+        status: "PUBLISHED",
+        ...(ciudad ? { ciudad: { contains: ciudad, mode: "insensitive" } } : {}),
+        ...(huespedes ? { huespedesMax: { gte: huespedes } } : {}),
+        ...(propertyType ? { propertyType } : {}),
+      },
     },
-    include: { images: { orderBy: { orden: "asc" }, take: 1 } },
-    orderBy: { updatedAt: "desc" },
+    include: {
+      tenant: { select: { name: true } },
+      property: { include: { images: { orderBy: { orden: "asc" }, take: 1 } } },
+    },
+    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
     take: limit || 12,
   });
 
   return {
-    properties: props.map((p) => ({
-      id: p.id,
-      titulo: p.titulo,
-      ciudad: p.ciudad,
-      estadoRegion: p.estadoRegion,
-      huespedesMax: p.huespedesMax,
-      currency: p.currency,
-      pricePerNightCents: p.pricePerNightCents,
-      imageUrl: p.images[0]?.url ?? null,
-      url: `/property/${p.id}`,
+    listings: listings.map((listing) => ({
+      listingId: listing.id,
+      propertyId: listing.property.id,
+      title: listing.title,
+      ciudad: listing.property.ciudad,
+      estadoRegion: listing.property.estadoRegion,
+      huespedesMax: listing.property.huespedesMax,
+      propertyType: listing.property.propertyType,
+      operationType: listing.operationType,
+      currency: listing.currency,
+      priceCents: listing.priceCents,
+      agencyName: listing.tenant.name,
+      imageUrl: listing.property.images[0]?.url ?? null,
+      url: `/property/${listing.property.id}?listing=${listing.id}`,
     })),
   };
 }
@@ -142,9 +157,14 @@ async function tool_get_property(args: unknown) {
     include: {
       images: { orderBy: { orden: "asc" } },
       amenities: { include: { amenity: true } },
+      tenant: { select: { name: true, status: true } },
+      listings: {
+        where: { status: "PUBLISHED" },
+        orderBy: { updatedAt: "desc" },
+      },
     },
   });
-  if (!p || p.status !== "PUBLISHED") throw new Error("Propiedad no encontrada.");
+  if (!p || p.status !== "PUBLISHED" || p.tenant.status !== "ACTIVE") throw new Error("Propiedad no encontrada.");
 
   return {
     property: {
@@ -157,10 +177,18 @@ async function tool_get_property(args: unknown) {
       habitaciones: p.habitaciones,
       camas: p.camas,
       banos: p.banos,
-      currency: p.currency,
-      pricePerNightCents: p.pricePerNightCents,
+      propertyType: p.propertyType,
+      agencyName: p.tenant.name,
       images: p.images.map((i) => ({ url: i.url, alt: i.alt, orden: i.orden })),
       amenities: p.amenities.map((pa) => ({ slug: pa.amenity.slug, nombre: pa.amenity.nombre })),
+      listings: p.listings.map((listing) => ({
+        listingId: listing.id,
+        title: listing.title,
+        operationType: listing.operationType,
+        currency: listing.currency,
+        priceCents: listing.priceCents,
+        url: `/property/${p.id}?listing=${listing.id}`,
+      })),
       url: `/property/${p.id}`,
     },
   };
@@ -170,6 +198,7 @@ async function tool_quote_booking(args: unknown) {
   const parsed = z
     .object({
       propertyId: z.string().min(1),
+      listingId: z.string().min(1),
       checkIn: z.string().min(1),
       checkOut: z.string().min(1),
       guests: z.number().int().min(1).max(50),
@@ -177,26 +206,29 @@ async function tool_quote_booking(args: unknown) {
     .safeParse(args);
   if (!parsed.success) throw new Error("Datos inválidos.");
 
-  const p = await prisma.property.findUnique({
-    where: { id: parsed.data.propertyId },
-    select: {
-      id: true,
-      status: true,
-      currency: true,
-      pricePerNightCents: true,
-      huespedesMax: true,
+  const listing = await prisma.listing.findFirst({
+    where: {
+      id: parsed.data.listingId,
+      propertyId: parsed.data.propertyId,
+      status: "PUBLISHED",
+      operationType: "SHORT_RENT",
+      tenant: { is: { status: "ACTIVE" } },
+      property: { status: "PUBLISHED" },
+    },
+    include: {
+      property: { select: { id: true, huespedesMax: true } },
     },
   });
-  if (!p || p.status !== "PUBLISHED") throw new Error("Propiedad no encontrada.");
-  if (parsed.data.guests > p.huespedesMax) throw new Error("Excede el máximo de huéspedes.");
+  if (!listing) throw new Error("Publicación de alquiler temporal no encontrada.");
+  if (parsed.data.guests > listing.property.huespedesMax) throw new Error("Excede el máximo de huéspedes.");
 
   const checkIn = new Date(parsed.data.checkIn);
   const checkOut = new Date(parsed.data.checkOut);
   if (!Number.isFinite(checkIn.getTime()) || !Number.isFinite(checkOut.getTime())) throw new Error("Fechas inválidas.");
 
   const quote = await cotizarReserva({
-    pricePerNightCents: p.pricePerNightCents,
-    currency: p.currency,
+    pricePerNightCents: listing.priceCents,
+    currency: listing.currency,
     checkIn,
     checkOut,
     guests: parsed.data.guests,
@@ -204,7 +236,7 @@ async function tool_quote_booking(args: unknown) {
   if (quote.nights <= 0) throw new Error("Rango de fechas inválido.");
 
   const conflict = await findAvailabilityConflict(prisma, {
-    propertyId: p.id,
+    propertyId: listing.property.id,
     checkIn,
     checkOut,
   });
@@ -237,10 +269,11 @@ export async function POST(req: Request) {
 
   const instructions = [
     `Eres ${branding.agentName}, un asistente de ${branding.brandName}.`,
-    "Tu tarea es asesorar al usuario y ayudarlo a encontrar propiedades reales del catálogo.",
-    "Cuando el usuario pida opciones, usa search_properties y devuelve 3-8 opciones con links.",
-    "Si el usuario elige una propiedad o pide detalles, usa get_property.",
-    "Si el usuario da fechas y huéspedes, puedes usar quote_booking para cotizar (solo cálculo, no cobro).",
+    "Tu tarea es asesorar al usuario y ayudarlo a encontrar publicaciones inmobiliarias reales del marketplace.",
+    "Distingue venta, alquiler temporal, alquiler residencial y alquiler comercial. Nunca conviertas un precio de venta o alquiler mensual en precio por noche.",
+    "Cuando el usuario pida opciones, usa search_properties y devuelve 3-8 publicaciones con links, inmobiliaria, operación y precio.",
+    "Si el usuario elige una propiedad o pide detalles, usa get_property y explica sus publicaciones activas.",
+    "Solo si la publicación es SHORT_RENT y el usuario da fechas y huéspedes, usa quote_booking para cotizar (solo cálculo, no cobro).",
     "Responde en español. Sé claro, no inventes propiedades ni precios. Si no hay resultados, pide más filtros (ciudad, huéspedes, presupuesto).",
   ].join("\n");
 
@@ -268,7 +301,9 @@ export async function POST(req: Request) {
         additionalProperties: false,
         properties: {
           ciudad: { type: "string", description: "Filtro opcional por ciudad (contiene)." },
-          huespedes: { type: "integer", description: "Cantidad de huéspedes." },
+          huespedes: { type: "integer", description: "Cantidad de huéspedes, útil especialmente para alquiler temporal." },
+          operationType: { type: "string", enum: ["SALE","SHORT_RENT","LONG_RENT","COMMERCIAL_RENT"], description: "Tipo de operación comercial." },
+          propertyType: { type: "string", enum: ["HOUSE","APARTMENT","TOWNHOUSE","LAND","OFFICE","COMMERCIAL","WAREHOUSE","BUILDING","FARM","HOTEL","VACATION","OTHER"], description: "Tipo de inmueble." },
           limit: { type: "integer", description: "Máximo de resultados (1-60)." },
         },
       },
@@ -297,11 +332,12 @@ export async function POST(req: Request) {
         additionalProperties: false,
         properties: {
           propertyId: { type: "string" },
+          listingId: { type: "string", description: "ID de una publicación SHORT_RENT." },
           checkIn: { type: "string", description: "Fecha ISO (YYYY-MM-DD o ISO full)." },
           checkOut: { type: "string", description: "Fecha ISO (YYYY-MM-DD o ISO full)." },
           guests: { type: "integer" },
         },
-        required: ["propertyId", "checkIn", "checkOut", "guests"],
+        required: ["propertyId", "listingId", "checkIn", "checkOut", "guests"],
       },
     },
   ];

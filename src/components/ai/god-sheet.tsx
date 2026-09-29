@@ -46,7 +46,7 @@ export function GodSheet(props: {
   const [msgs, setMsgs] = React.useState<Msg[]>([
     {
       role: "assistant",
-      content: `Soy ${props.branding.agentName}. Cuéntame qué alojamiento buscas (ciudad, fechas, huéspedes, presupuesto) y te muestro opciones reales del catálogo.`,
+      content: `Soy ${props.branding.agentName}. Cuéntame qué propiedad buscas, la operación, ciudad, presupuesto y características; te mostraré publicaciones reales de METRORA.`,
     },
   ]);
   const [cargandoSesion, setCargandoSesion] = React.useState(false);
@@ -150,7 +150,7 @@ export function GodSheet(props: {
                 ref={inputRef}
                 value={texto}
                 onChange={(e) => setTexto(e.target.value)}
-                placeholder="Cuéntanos cómo quieres hospedarte… Ej: ‘Apartamento para 4 personas, 2 noches en la playa, con vista al mar en Tucacas’"
+                placeholder="Ej: ‘Apartamento en venta en Caracas hasta USD 150.000 con 3 habitaciones’"
                 rows={3}
               />
               <div className="flex items-center justify-between gap-2">

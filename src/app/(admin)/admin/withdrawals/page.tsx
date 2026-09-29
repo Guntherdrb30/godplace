@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { formatMoney } from "@/lib/format";
 import type { WithdrawalStatus } from "@prisma/client";
+import { requireRole } from "@/lib/auth/guards";
+import { requireTenantId } from "@/lib/tenancy/context";
 
 export const dynamic = "force-dynamic";
 
@@ -41,19 +43,25 @@ function badgeVariant(s: WithdrawalStatus): "default" | "secondary" | "destructi
 export default async function AdminWithdrawalsPage(props: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const actor = await requireRole(["ADMIN", "ROOT"]);
+  const tenantId = requireTenantId(actor);
   const sp = await props.searchParams;
   const statusRaw = typeof sp.status === "string" ? sp.status : "";
   const allowedStatuses: WithdrawalStatus[] = ["PENDING", "APPROVED", "REJECTED", "PAID"];
   const status = allowedStatuses.includes(statusRaw as WithdrawalStatus) ? (statusRaw as WithdrawalStatus) : null;
 
   const withdrawals = await prisma.withdrawalRequest.findMany({
-    where: status ? { status } : {},
+    where: status
+      ? { status, allyProfile: { tenantId } }
+      : { allyProfile: { tenantId } },
     include: { allyProfile: { include: { user: true } } },
     orderBy: { createdAt: "desc" },
     take: 500,
   });
 
-  const pendientes = await prisma.withdrawalRequest.count({ where: { status: "PENDING" } });
+  const pendientes = await prisma.withdrawalRequest.count({
+    where: { status: "PENDING", allyProfile: { tenantId } },
+  });
 
   return (
     <Container>

@@ -4,10 +4,9 @@
 
 @layer base {
   :root {
-    /* Godplaces. (marca) */
-    --marca-turquesa: 176 57% 45%; /* #32B5AD */
-    --marca-petroleo: 188 100% 17%; /* #004B57 */
-    /* En la guia, el call-to-action usa el turquesa principal. */
+    /* METRORA global brand */
+    --marca-turquesa: 221 83% 53%;
+    --marca-petroleo: 222 47% 16%;
     --marca-cta: var(--marca-turquesa);
 
     /* Alias (tokens solicitados): brand.primary/secondary/accent */
@@ -64,6 +63,6 @@
 /* A11y: foco visible consistente (teal) */
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(50, 181, 173, 0.28);
+  box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.22);
   border-radius: 10px;
 }

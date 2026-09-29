@@ -36,7 +36,7 @@ export async function SiteHeader() {
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src={branding.logoUrl || "/logo-godplaces-placeholder.svg"}
+              src={branding.logoUrl || "/metrora-mark.svg"}
               alt={`Logo de ${branding.brandName}.`}
               width={34}
               height={34}

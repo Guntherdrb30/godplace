@@ -1,5 +1,5 @@
 {
-  "name": "godplaces",
+  "name": "metrora",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -18,7 +18,8 @@
     "prisma:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:create-root": "node scripts/create-root.mjs",
-    "db:backfill:wallets": "node scripts/backfill-ally-wallets.mjs"
+    "db:backfill:wallets": "node scripts/backfill-ally-wallets.mjs",
+    "test:multitenancy": "node scripts/test-multitenancy.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

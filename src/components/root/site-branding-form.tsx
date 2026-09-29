@@ -93,7 +93,7 @@ export function SiteBrandingForm(props: { initial: SiteBrandingEditable }) {
           <div className="grid gap-2">
             <Label htmlFor="agentName">Nombre del agente</Label>
             <Input id="agentName" value={agentName} onChange={(e) => setAgentName(e.target.value)} disabled={guardando} />
-            <p className="text-xs text-muted-foreground">Ej: God, Nova, Luna, etc.</p>
+            <p className="text-xs text-muted-foreground">Ej: METRORA AI.</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -104,7 +104,7 @@ export function SiteBrandingForm(props: { initial: SiteBrandingEditable }) {
                 value={primaryHsl}
                 onChange={(e) => setPrimaryHsl(e.target.value)}
                 disabled={guardando}
-                placeholder="176 57% 45%"
+                placeholder="221 83% 53%"
               />
             </div>
             <div className="grid gap-2">
@@ -114,7 +114,7 @@ export function SiteBrandingForm(props: { initial: SiteBrandingEditable }) {
                 value={secondaryHsl}
                 onChange={(e) => setSecondaryHsl(e.target.value)}
                 disabled={guardando}
-                placeholder="188 100% 17%"
+                placeholder="222 47% 16%"
               />
             </div>
           </div>
